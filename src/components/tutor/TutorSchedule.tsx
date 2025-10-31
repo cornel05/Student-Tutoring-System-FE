@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
+import { Checkbox } from '../ui/checkbox';
 import { 
   Clock, 
   Plus, 
@@ -12,7 +13,8 @@ import {
   Video,
   Users,
   Send,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,7 +52,8 @@ export function TutorSchedule() {
       location: 'Room A5-101',
       zoomLink: 'https://zoom.us/j/123456789',
       capacity: 5,
-      isPublished: true
+      isPublished: true,
+      requiresApproval: false
     },
     { 
       id: 'a2', 
@@ -60,7 +63,8 @@ export function TutorSchedule() {
       mode: 'online',
       zoomLink: 'https://zoom.us/j/987654321',
       capacity: 8,
-      isPublished: true
+      isPublished: true,
+      requiresApproval: true
     },
     { 
       id: 'a3', 
@@ -70,7 +74,8 @@ export function TutorSchedule() {
       mode: 'offline',
       location: 'Room A5-102',
       capacity: 4,
-      isPublished: false
+      isPublished: false,
+      requiresApproval: false
     },
   ]);
   
@@ -89,7 +94,8 @@ export function TutorSchedule() {
     location: '',
     zoomLink: '',
     capacity: 5,
-    isPublished: false
+    isPublished: false,
+    requiresApproval: false
   });
   
   const [newBlackout, setNewBlackout] = useState({
@@ -122,7 +128,8 @@ export function TutorSchedule() {
       location: newSlot.location,
       zoomLink: newSlot.zoomLink,
       capacity: newSlot.capacity || 5,
-      isPublished: false
+      isPublished: false,
+      requiresApproval: newSlot.requiresApproval || false
     };
 
     setAvailability([...availability, slot]);
@@ -138,7 +145,8 @@ export function TutorSchedule() {
       location: '',
       zoomLink: '',
       capacity: 5,
-      isPublished: false
+      isPublished: false,
+      requiresApproval: false
     });
   };
 
@@ -279,6 +287,12 @@ export function TutorSchedule() {
                               <Badge variant={slot.isPublished ? 'default' : 'secondary'}>
                                 {slot.isPublished ? 'Published' : 'Draft'}
                               </Badge>
+                              {slot.requiresApproval && (
+                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Requires Approval
+                                </Badge>
+                              )}
                             </div>
                             
                             <div className="flex flex-wrap gap-2 text-sm">
@@ -544,6 +558,30 @@ export function TutorSchedule() {
               <p className="text-xs text-gray-500 mt-1">
                 Maximum number of students who can book this time slot
               </p>
+            </div>
+
+            {/* Requires Approval Checkbox */}
+            <div className="flex items-start space-x-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <Checkbox
+                id="requiresApproval"
+                checked={newSlot.requiresApproval || false}
+                onCheckedChange={(checked: boolean) => 
+                  setNewSlot({ ...newSlot, requiresApproval: checked })
+                }
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <label
+                  htmlFor="requiresApproval"
+                  className="text-sm font-medium text-gray-900 cursor-pointer flex items-center gap-2"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-yellow-600" />
+                  Students wait for approval before booking
+                </label>
+                <p className="text-xs text-gray-600 mt-1">
+                  When enabled, students must request to book this slot and wait for your approval before the session is confirmed. This gives you control over who can attend.
+                </p>
+              </div>
             </div>
           </div>
 
