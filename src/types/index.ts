@@ -40,6 +40,24 @@ export interface TimeSlot {
   day: string;
   startTime: string;
   endTime: string;
+  mode?: 'online' | 'offline' | 'both';
+  location?: string;
+  zoomLink?: string;
+  capacity?: number;
+  isPublished?: boolean;
+}
+
+export interface BlackoutDate {
+  id: string;
+  date: string;
+  reason: string;
+}
+
+export interface TutorCredential {
+  id: string;
+  name: string;
+  fileUrl: string;
+  uploadDate: string;
 }
 
 export interface TutoringSession {
