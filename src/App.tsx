@@ -10,6 +10,7 @@ import { StudentProfile } from './components/student/StudentProfile';
 import { TutorDashboard } from './components/tutor/TutorDashboard';
 import { TutorSchedule } from './components/tutor/TutorSchedule';
 import { TutorStudents } from './components/tutor/TutorStudents';
+import { TutorSessions } from './components/tutor/TutorSessions';
 import { TutorProfile } from './components/tutor/TutorProfile';
 import { Messages } from './components/Messages';
 import { mockStudentUser, mockTutorUser } from './data/mockData';
@@ -124,6 +125,7 @@ export default function App() {
             )}
             {currentPage === 'schedule' && <TutorSchedule />}
             {currentPage === 'students' && <TutorStudents />}
+            {currentPage === 'sessions' && <TutorSessions />}
             {currentPage === 'messages' && <Messages userRole="tutor" />}
             {currentPage === 'profile' && <TutorProfile />}
           </>
