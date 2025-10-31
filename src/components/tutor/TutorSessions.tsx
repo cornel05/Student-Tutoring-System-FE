@@ -7,6 +7,8 @@ import { Progress } from '../ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Checkbox } from '../ui/checkbox';
 import { 
   Calendar, 
   Video, 
@@ -21,7 +23,18 @@ import {
   TrendingUp,
   Award,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Upload,
+  Link as LinkIcon,
+  Paperclip,
+  Eye,
+  EyeOff,
+  Save,
+  Send,
+  X,
+  Plus,
+  File,
+  Download
 } from 'lucide-react';
 import {
   Dialog,
@@ -32,7 +45,7 @@ import {
   DialogTitle,
 } from '../ui/dialog';
 import { mockTutoringSessions, mockSubjects } from '../../data/mockData';
-import { TutoringSession } from '../../types';
+import { TutoringSession, SessionMaterial } from '../../types';
 import { toast } from 'sonner';
 
 // Mock student feedback data
@@ -68,6 +81,19 @@ export function TutorSessions() {
   const [selectedTab, setSelectedTab] = useState('progress');
   const [progressNotes, setProgressNotes] = useState<Record<string, string>>({});
   const [savingProgress, setSavingProgress] = useState(false);
+  
+  // Meeting notes and materials state
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [meetingNotes, setMeetingNotes] = useState('');
+  const [showMaterialsDialog, setShowMaterialsDialog] = useState(false);
+  const [uploadType, setUploadType] = useState<'file' | 'library-link'>('file');
+  const [materialName, setMaterialName] = useState('');
+  const [materialUrl, setMaterialUrl] = useState('');
+  const [materialDescription, setMaterialDescription] = useState('');
+  const [materialTags, setMaterialTags] = useState('');
+  const [materialVisibility, setMaterialVisibility] = useState<'private' | 'shared'>('shared');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [sessionMaterials, setSessionMaterials] = useState<SessionMaterial[]>([]);
 
   const activeSessions = sessions.filter(s => s.status === 'active');
   const completedSessions = sessions.filter(s => s.status === 'completed');
@@ -106,6 +132,132 @@ export function TutorSessions() {
       });
       setSavingProgress(false);
     }, 1000);
+  };
+
+  // Handle saving meeting notes
+  const handleSaveMeetingNotes = () => {
+    if (!meetingNotes.trim()) {
+      toast.error('Please enter meeting notes');
+      return;
+    }
+
+    // Simulate saving to database
+    const session = sessions.find(s => s.id === selectedSession);
+    if (session) {
+      // Update the session with notes
+      toast.success('Meeting notes saved successfully', {
+        description: 'Notes have been added to the session record'
+      });
+      setShowNotesDialog(false);
+      setMeetingNotes('');
+    }
+  };
+
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      
+      // Validate file types (PDFs, docs, presentations)
+      const validTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+      ];
+      
+      const invalidFiles = fileArray.filter(f => !validTypes.includes(f.type));
+      if (invalidFiles.length > 0) {
+        toast.error('Invalid file type', {
+          description: 'Only PDF, Word, and PowerPoint files are allowed'
+        });
+        return;
+      }
+      
+      // Validate file size (max 10MB per file)
+      const largeFiles = fileArray.filter(f => f.size > 10 * 1024 * 1024);
+      if (largeFiles.length > 0) {
+        toast.error('File too large', {
+          description: 'Maximum file size is 10MB per file'
+        });
+        return;
+      }
+      
+      setSelectedFiles(fileArray);
+      toast.success(`${fileArray.length} file(s) selected`);
+    }
+  };
+
+  // Handle saving materials
+  const handleSaveMaterials = () => {
+    if (uploadType === 'file' && selectedFiles.length === 0) {
+      toast.error('Please select files to upload');
+      return;
+    }
+    
+    if (uploadType === 'library-link' && !materialUrl.trim()) {
+      toast.error('Please enter a library resource link');
+      return;
+    }
+
+    // Create new materials
+    const newMaterials: SessionMaterial[] = uploadType === 'file' 
+      ? selectedFiles.map((file, index) => ({
+          id: `mat-${Date.now()}-${index}`,
+          name: file.name,
+          type: 'file' as const,
+          fileType: file.type,
+          fileSize: file.size,
+          url: URL.createObjectURL(file), // In real app, this would be the uploaded URL
+          description: materialDescription,
+          tags: materialTags.split(',').map(t => t.trim()).filter(Boolean),
+          visibility: materialVisibility,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: 'tutor1' // Current tutor ID
+        }))
+      : [{
+          id: `mat-${Date.now()}`,
+          name: materialName,
+          type: 'library-link' as const,
+          url: materialUrl,
+          description: materialDescription,
+          tags: materialTags.split(',').map(t => t.trim()).filter(Boolean),
+          visibility: materialVisibility,
+          uploadedAt: new Date().toISOString(),
+          uploadedBy: 'tutor1'
+        }];
+
+    setSessionMaterials([...sessionMaterials, ...newMaterials]);
+    
+    // Reset form
+    setSelectedFiles([]);
+    setMaterialName('');
+    setMaterialUrl('');
+    setMaterialDescription('');
+    setMaterialTags('');
+    setMaterialVisibility('shared');
+    setShowMaterialsDialog(false);
+    
+    toast.success('Materials uploaded successfully');
+  };
+
+  // Handle save and notify students
+  const handleSaveAndNotify = () => {
+    if (!selectedSession) return;
+
+    // Simulate saving to database and sending notifications
+    const session = sessions.find(s => s.id === selectedSession);
+    if (session) {
+      toast.success('Session updated successfully!', {
+        description: `Notification sent to ${session.studentName}. All materials and notes have been saved.`
+      });
+      
+      // Reset states
+      setMeetingNotes('');
+      setSessionMaterials([]);
+    }
   };
 
   // Calculate aggregate feedback statistics
@@ -366,7 +518,7 @@ export function TutorSessions() {
 
       {/* Session Details Dialog */}
       <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3">
               <Avatar className="w-12 h-12">
@@ -383,10 +535,11 @@ export function TutorSessions() {
           </DialogHeader>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="progress">Progress & Attendance</TabsTrigger>
-              <TabsTrigger value="notes">Meeting Notes</TabsTrigger>
-              <TabsTrigger value="feedback">Student Feedback</TabsTrigger>
+            <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1">
+              <TabsTrigger value="progress" className="flex-1 min-w-[140px]">Progress & Attendance</TabsTrigger>
+              <TabsTrigger value="notes" className="flex-1 min-w-[120px]">Meeting Notes</TabsTrigger>
+              <TabsTrigger value="materials" className="flex-1 min-w-[100px]">Materials</TabsTrigger>
+              <TabsTrigger value="feedback" className="flex-1 min-w-[130px]">Student Feedback</TabsTrigger>
             </TabsList>
 
             {/* Progress & Attendance Tab */}
@@ -499,12 +652,16 @@ export function TutorSessions() {
             {/* Meeting Notes Tab */}
             <TabsContent value="notes" className="space-y-4">
               <Card>
-                <CardHeader>
+                <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Meeting Notes & Topics Covered</CardTitle>
+                  <Button onClick={() => setShowNotesDialog(true)} size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Meeting Notes
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {session?.meetings.filter(m => m.notes).map((meeting) => (
+                    {session?.meetings.filter(m => m.notes || m.meetingNotes).map((meeting) => (
                       <div key={meeting.id} className="p-4 bg-gray-50 rounded-lg border">
                         <div className="flex items-center gap-3 mb-3">
                           <Calendar className="w-4 h-4 text-gray-400" />
@@ -518,15 +675,123 @@ export function TutorSessions() {
                             <CheckCircle2 className="w-4 h-4 text-green-600 ml-auto" />
                           )}
                         </div>
-                        <p className="text-sm text-gray-700 leading-relaxed">{meeting.notes}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                          {meeting.meetingNotes || meeting.notes}
+                        </p>
                       </div>
                     ))}
-                    {session?.meetings.filter(m => m.notes).length === 0 && (
-                      <p className="text-center text-gray-500 py-8">No meeting notes available</p>
+                    {session?.meetings.filter(m => m.notes || m.meetingNotes).length === 0 && (
+                      <div className="text-center py-8">
+                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No meeting notes available</p>
+                        <p className="text-sm text-gray-400 mt-1">Click "Add Meeting Notes" to get started</p>
+                      </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Materials Tab */}
+            <TabsContent value="materials" className="space-y-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Session Materials & Resources</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">Upload files or link library resources</p>
+                  </div>
+                  <Button onClick={() => setShowMaterialsDialog(true)} size="sm">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Materials
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {sessionMaterials.length > 0 ? (
+                      sessionMaterials.map((material) => (
+                        <div key={material.id} className="p-4 bg-white rounded-lg border hover:border-blue-300 transition-colors">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-blue-50 rounded-lg">
+                              {material.type === 'file' ? (
+                                <File className="w-6 h-6 text-blue-600" />
+                              ) : (
+                                <LinkIcon className="w-6 h-6 text-blue-600" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-3 mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-gray-900 mb-1">{material.name}</h4>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    {material.fileType && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {material.fileType}
+                                      </Badge>
+                                    )}
+                                    {material.fileSize && (
+                                      <span className="text-xs text-gray-500">
+                                        {(material.fileSize / (1024 * 1024)).toFixed(2)} MB
+                                      </span>
+                                    )}
+                                    <Badge 
+                                      variant={material.visibility === 'shared' ? 'default' : 'secondary'}
+                                      className="text-xs"
+                                    >
+                                      {material.visibility === 'shared' ? (
+                                        <><Eye className="w-3 h-3 mr-1" /> Shared</>
+                                      ) : (
+                                        <><EyeOff className="w-3 h-3 mr-1" /> Private</>
+                                      )}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <Button variant="ghost" size="sm">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </div>
+                              {material.description && (
+                                <p className="text-sm text-gray-600 mb-2">{material.description}</p>
+                              )}
+                              {material.tags && material.tags.length > 0 && (
+                                <div className="flex gap-2 flex-wrap">
+                                  {material.tags.map((tag, idx) => (
+                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              <p className="text-xs text-gray-400 mt-2">
+                                Uploaded {new Date(material.uploadedAt).toLocaleDateString()} by {material.uploadedBy}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <Paperclip className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500">No materials uploaded yet</p>
+                        <p className="text-sm text-gray-400 mt-1">Upload study materials to share with your student</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Save and Notify Button */}
+              {sessionMaterials.length > 0 && (
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={handleSaveAndNotify} 
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Send className="mr-2 h-5 w-5" />
+                    Save and Notify Student
+                  </Button>
+                </div>
+              )}
             </TabsContent>
 
             {/* Student Feedback Tab */}
@@ -678,6 +943,171 @@ export function TutorSessions() {
               )}
             </TabsContent>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Meeting Notes Dialog */}
+      <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Meeting Notes</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="meeting-notes">Meeting Notes</Label>
+              <Textarea
+                id="meeting-notes"
+                placeholder="Enter detailed notes about the meeting...&#10;&#10;Topics covered:&#10;- &#10;&#10;Student progress:&#10;- &#10;&#10;Next steps:&#10;- "
+                value={meetingNotes}
+                onChange={(e) => setMeetingNotes(e.target.value)}
+                className="min-h-[250px] font-mono text-sm"
+              />
+              <p className="text-xs text-gray-500">
+                Include topics discussed, student progress observations, and action items
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowNotesDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveMeetingNotes}>
+              <Save className="mr-2 h-4 w-4" />
+              Save Notes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Materials Dialog */}
+      <Dialog open={showMaterialsDialog} onOpenChange={setShowMaterialsDialog}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Upload Session Materials</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {/* Upload Type Selection */}
+            <div className="space-y-2">
+              <Label>Material Type</Label>
+              <Tabs value={uploadType} onValueChange={(v: string) => setUploadType(v as 'file' | 'library-link')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="file">Upload File</TabsTrigger>
+                  <TabsTrigger value="library-link">HCMUT Library Link</TabsTrigger>
+                </TabsList>
+
+                {/* File Upload */}
+                <TabsContent value="file" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="file-upload">Select File</Label>
+                    <Input
+                      id="file-upload"
+                      type="file"
+                      accept=".pdf,.doc,.docx,.ppt,.pptx"
+                      onChange={handleFileSelect}
+                      className="cursor-pointer"
+                    />
+                    {selectedFiles.length > 0 && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <File className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-blue-900 font-medium">
+                            {selectedFiles[0].name}
+                          </span>
+                          <span className="text-xs text-blue-600">
+                            ({(selectedFiles[0].size / (1024 * 1024)).toFixed(2)} MB)
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">
+                      Supported formats: PDF, Word, PowerPoint (Max 10MB)
+                    </p>
+                  </div>
+                </TabsContent>
+
+                {/* Library Link */}
+                <TabsContent value="library-link" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="library-url">Library Resource URL</Label>
+                    <Input
+                      id="library-url"
+                      type="url"
+                      placeholder="https://library.hcmut.edu.vn/..."
+                      value={materialUrl}
+                      onChange={(e) => setMaterialUrl(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Paste the URL from HCMUT Library system
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="material-name">Resource Name</Label>
+                    <Input
+                      id="material-name"
+                      placeholder="e.g., Data Structures Chapter 5"
+                      value={materialName}
+                      onChange={(e) => setMaterialName(e.target.value)}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Common Fields */}
+            <div className="space-y-4 pt-4 border-t">
+              <div className="space-y-2">
+                <Label htmlFor="material-description">Description (Optional)</Label>
+                <Textarea
+                  id="material-description"
+                  placeholder="Brief description of the material and how it relates to the session..."
+                  value={materialDescription}
+                  onChange={(e) => setMaterialDescription(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="material-tags">Tags (Optional)</Label>
+                <Input
+                  id="material-tags"
+                  placeholder="e.g., homework, practice, reference"
+                  value={materialTags}
+                  onChange={(e) => setMaterialTags(e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Separate tags with commas
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="share-with-student"
+                  checked={materialVisibility === 'shared'}
+                  onCheckedChange={(checked: boolean) => 
+                    setMaterialVisibility(checked ? 'shared' : 'private')
+                  }
+                />
+                <Label htmlFor="share-with-student" className="text-sm cursor-pointer">
+                  Share this material with the student
+                </Label>
+              </div>
+              <p className="text-xs text-gray-500 ml-6">
+                {materialVisibility === 'shared' 
+                  ? 'Student will be able to view and download this material'
+                  : 'This material will be private and only visible to you'
+                }
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => setShowMaterialsDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveMaterials}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Material
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
