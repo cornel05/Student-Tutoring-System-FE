@@ -11,11 +11,14 @@ import { TutorDashboard } from './components/tutor/TutorDashboard';
 import { TutorSchedule } from './components/tutor/TutorSchedule';
 import { TutorStudents } from './components/tutor/TutorStudents';
 import { TutorProfile } from './components/tutor/TutorProfile';
+import { ADSDashboard } from './components/ads/ADSDashboard';
+import { OAADashboard } from './components/oaa/OAADashboard';
+import { OSADashboard } from './components/osa/OSADashboard';
 import { Messages } from './components/Messages';
-import { mockStudentUser, mockTutorUser } from './data/mockData';
+import { mockStudentUser, mockTutorUser, mockADSUser, mockOAAUser, mockOSAUser } from './data/mockData';
 import { User } from './types';
 import { Toaster } from './components/ui/sonner';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -24,8 +27,29 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
-  const handleLogin = (role: 'student' | 'tutor') => {
-    const user = role === 'student' ? mockStudentUser : mockTutorUser;
+  const handleLogin = (role: 'student' | 'tutor' | 'ads' | 'oaa' | 'osa') => {
+    let user: User;
+    
+    switch (role) {
+      case 'student':
+        user = mockStudentUser;
+        break;
+      case 'tutor':
+        user = mockTutorUser;
+        break;
+      case 'ads':
+        user = mockADSUser;
+        break;
+      case 'oaa':
+        user = mockOAAUser;
+        break;
+      case 'osa':
+        user = mockOSAUser;
+        break;
+      default:
+        user = mockStudentUser;
+    }
+    
     setCurrentUser(user);
     
     // Check if first login for students
@@ -87,6 +111,10 @@ export default function App() {
   }
 
   const isStudent = currentUser.role === 'student';
+  const isTutor = currentUser.role === 'tutor';
+  const isADS = currentUser.role === 'ads';
+  const isOAA = currentUser.role === 'oaa';
+  const isOSA = currentUser.role === 'osa';
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,7 +132,7 @@ export default function App() {
 
       {/* Main Content */}
       <main>
-        {isStudent ? (
+        {isStudent && (
           <>
             {currentPage === 'dashboard' && (
               <StudentDashboard hasConsent={hasConsent} onNavigate={handleNavigate} />
@@ -117,7 +145,9 @@ export default function App() {
             {currentPage === 'messages' && <Messages userRole="student" />}
             {currentPage === 'profile' && <StudentProfile />}
           </>
-        ) : (
+        )}
+        
+        {isTutor && (
           <>
             {currentPage === 'dashboard' && (
               <TutorDashboard onNavigate={handleNavigate} />
@@ -126,6 +156,24 @@ export default function App() {
             {currentPage === 'students' && <TutorStudents />}
             {currentPage === 'messages' && <Messages userRole="tutor" />}
             {currentPage === 'profile' && <TutorProfile />}
+          </>
+        )}
+        
+        {isADS && (
+          <>
+            {currentPage === 'dashboard' && <ADSDashboard />}
+          </>
+        )}
+        
+        {isOAA && (
+          <>
+            {currentPage === 'dashboard' && <OAADashboard />}
+          </>
+        )}
+        
+        {isOSA && (
+          <>
+            {currentPage === 'dashboard' && <OSADashboard />}
           </>
         )}
       </main>
