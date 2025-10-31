@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
-import { Checkbox } from '../ui/checkbox';
 import { 
   Calendar, 
   Video, 
@@ -1080,13 +1079,17 @@ export function TutorSessions() {
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="share-with-student"
-                  checked={materialVisibility === 'shared'}
-                  onCheckedChange={(checked: boolean) => 
-                    setMaterialVisibility(checked ? 'shared' : 'private')
-                  }
-                />
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="share-with-student"
+                    checked={materialVisibility === 'shared'}
+                    onChange={(e) => 
+                      setMaterialVisibility(e.target.checked ? 'shared' : 'private')
+                    }
+                    className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5 border-gray-300 rounded cursor-pointer"
+                  />
+                </label>
                 <Label htmlFor="share-with-student" className="text-sm cursor-pointer">
                   Share this material with the student
                 </Label>

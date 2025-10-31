@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
-import { Checkbox } from '../ui/checkbox';
 import { 
   Clock, 
   Plus, 
@@ -562,14 +561,17 @@ export function TutorSchedule() {
 
             {/* Requires Approval Checkbox */}
             <div className="flex items-start space-x-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <Checkbox
-                id="requiresApproval"
-                checked={newSlot.requiresApproval || false}
-                onCheckedChange={(checked: boolean) => 
-                  setNewSlot({ ...newSlot, requiresApproval: checked })
-                }
-                className="mt-1"
-              />
+              <label className="flex items-center cursor-pointer mt-1">
+                <input
+                  type="checkbox"
+                  id="requiresApproval"
+                  checked={newSlot.requiresApproval || false}
+                  onChange={(e) => 
+                    setNewSlot({ ...newSlot, requiresApproval: e.target.checked })
+                  }
+                  className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5 border-gray-300 rounded cursor-pointer"
+                />
+              </label>
               <div className="flex-1">
                 <label
                   htmlFor="requiresApproval"
