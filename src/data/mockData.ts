@@ -75,9 +75,34 @@ export const mockTutors: Tutor[] = [
     email: 'cuong.le@hcmut.edu.vn',
     subjects: ['MT2013', 'MT1003', 'MT1005'],
     availability: [
-      { id: 'a1', day: 'Monday', startTime: '14:00', endTime: '16:00' },
-      { id: 'a2', day: 'Wednesday', startTime: '14:00', endTime: '16:00' },
-      { id: 'a3', day: 'Friday', startTime: '10:00', endTime: '12:00' },
+      { 
+        id: 'a1', 
+        day: 'Monday', 
+        startTime: '14:00', 
+        endTime: '16:00',
+        mode: 'both',
+        location: 'Room H1-101, HCMUT',
+        zoomLink: 'https://zoom.us/j/math-cuong-mon',
+        capacity: 5
+      },
+      { 
+        id: 'a2', 
+        day: 'Wednesday', 
+        startTime: '14:00', 
+        endTime: '16:00',
+        mode: 'online',
+        zoomLink: 'https://zoom.us/j/math-cuong-wed',
+        capacity: 8
+      },
+      { 
+        id: 'a3', 
+        day: 'Friday', 
+        startTime: '10:00', 
+        endTime: '12:00',
+        mode: 'offline',
+        location: 'Room H2-205, HCMUT',
+        capacity: 4
+      },
     ],
     maxStudents: 5,
     currentStudents: 3,
@@ -92,8 +117,25 @@ export const mockTutors: Tutor[] = [
     email: 'dung.pham@hcmut.edu.vn',
     subjects: ['PH1003', 'CH1003'],
     availability: [
-      { id: 'a4', day: 'Tuesday', startTime: '15:00', endTime: '17:00' },
-      { id: 'a5', day: 'Thursday', startTime: '15:00', endTime: '17:00' },
+      { 
+        id: 'a4', 
+        day: 'Tuesday', 
+        startTime: '15:00', 
+        endTime: '17:00',
+        mode: 'offline',
+        location: 'Lab Building A3, Room 201',
+        capacity: 6
+      },
+      { 
+        id: 'a5', 
+        day: 'Thursday', 
+        startTime: '15:00', 
+        endTime: '17:00',
+        mode: 'both',
+        location: 'Lab Building A3, Room 201',
+        zoomLink: 'https://zoom.us/j/physics-dung-thu',
+        capacity: 6
+      },
     ],
     maxStudents: 4,
     currentStudents: 2,
@@ -108,8 +150,25 @@ export const mockTutors: Tutor[] = [
     email: 'em.hoang@hcmut.edu.vn',
     subjects: ['CO2004', 'CO3005'],
     availability: [
-      { id: 'a6', day: 'Monday', startTime: '16:00', endTime: '18:00' },
-      { id: 'a7', day: 'Thursday', startTime: '13:00', endTime: '15:00' },
+      { 
+        id: 'a6', 
+        day: 'Monday', 
+        startTime: '16:00', 
+        endTime: '18:00',
+        mode: 'online',
+        zoomLink: 'https://zoom.us/j/cs-em-mon',
+        capacity: 10
+      },
+      { 
+        id: 'a7', 
+        day: 'Thursday', 
+        startTime: '13:00', 
+        endTime: '15:00',
+        mode: 'both',
+        location: 'Computer Lab B4-302',
+        zoomLink: 'https://zoom.us/j/cs-em-thu',
+        capacity: 8
+      },
     ],
     maxStudents: 6,
     currentStudents: 4,
@@ -124,8 +183,24 @@ export const mockTutors: Tutor[] = [
     email: 'giang.nguyen@hcmut.edu.vn',
     subjects: ['CO3021'],
     availability: [
-      { id: 'a8', day: 'Wednesday', startTime: '09:00', endTime: '11:00' },
-      { id: 'a9', day: 'Friday', startTime: '14:00', endTime: '16:00' },
+      { 
+        id: 'a8', 
+        day: 'Wednesday', 
+        startTime: '09:00', 
+        endTime: '11:00',
+        mode: 'offline',
+        location: 'Room C5-401, Network Lab',
+        capacity: 5
+      },
+      { 
+        id: 'a9', 
+        day: 'Friday', 
+        startTime: '14:00', 
+        endTime: '16:00',
+        mode: 'online',
+        zoomLink: 'https://zoom.us/j/network-giang-fri',
+        capacity: 12
+      },
     ],
     maxStudents: 5,
     currentStudents: 5,

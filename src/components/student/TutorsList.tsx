@@ -12,18 +12,35 @@ import {
   Mail,
   Calendar,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  MapPin,
+  Video,
+  ArrowLeft
 } from 'lucide-react';
 import { mockTutors, mockSubjects } from '../../data/mockData';
-import { Tutor } from '../../types';
+import { Tutor, TimeSlot } from '../../types';
+import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
 
 interface TutorsListProps {
-  onRegister: (tutorId: string, subjectId: string) => void;
+  onBookSession: (tutorId: string, subjectId: string, slotId: string) => void;
 }
 
-export function TutorsList({ onRegister }: TutorsListProps) {
+export function TutorsList({ onBookSession }: TutorsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
+  const [selectedTutorSubject, setSelectedTutorSubject] = useState<string>('');
+  const [showSlotsDialog, setShowSlotsDialog] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
   const tutors = mockTutors;
   const subjects = mockSubjects;
@@ -167,21 +184,25 @@ export function TutorsList({ onRegister }: TutorsListProps) {
                 )}
               </div>
 
-              {/* Register Button */}
+              {/* Book Session Button */}
               <div className="pt-4 border-t">
                 {tutor.isAcceptingStudents ? (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">Select subject to register:</p>
+                    <p className="text-sm text-gray-600">Select subject to book session:</p>
                     <div className="flex flex-wrap gap-2">
                       {tutor.subjects.map((subjectCode) => (
                         <Button
                           key={subjectCode}
                           size="sm"
-                          onClick={() => onRegister(tutor.id, subjectCode)}
+                          onClick={() => {
+                            setSelectedTutor(tutor);
+                            setSelectedTutorSubject(subjectCode);
+                            setShowSlotsDialog(true);
+                          }}
                           className="bg-blue-600 hover:bg-blue-700"
                         >
                           <Calendar className="w-3 h-3 mr-1" />
-                          Register for {subjectCode}
+                          Book Session for {subjectCode}
                         </Button>
                       ))}
                     </div>
@@ -206,6 +227,220 @@ export function TutorsList({ onRegister }: TutorsListProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Available Slots Dialog */}
+      <Dialog open={showSlotsDialog} onOpenChange={setShowSlotsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Available Time Slots</DialogTitle>
+            <DialogDescription>
+              Select a preferred time slot for {selectedTutor?.name} - {getSubjectName(selectedTutorSubject)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {selectedTutor?.availability.map((slot) => (
+              <div
+                key={slot.id}
+                onClick={() => setSelectedSlot(slot)}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                  selectedSlot?.id === slot.id
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span className="font-medium text-gray-900">{slot.day}</span>
+                      <Badge variant="outline" className="ml-2">
+                        {slot.startTime} - {slot.endTime}
+                      </Badge>
+                    </div>
+                    
+                    {slot.mode && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        {slot.mode === 'online' || slot.mode === 'both' ? (
+                          <div className="flex items-center gap-1">
+                            <Video className="w-4 h-4" />
+                            <span>Online</span>
+                          </div>
+                        ) : null}
+                        {slot.mode === 'offline' || slot.mode === 'both' ? (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>Offline</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                    
+                    {slot.location && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="w-4 h-4" />
+                        <span>{slot.location}</span>
+                      </div>
+                    )}
+                    
+                    {slot.zoomLink && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <Video className="w-4 h-4" />
+                        <span className="truncate">Zoom link available</span>
+                      </div>
+                    )}
+                    
+                    {slot.capacity && (
+                      <div className="text-sm text-gray-500">
+                        Capacity: {slot.capacity} students
+                      </div>
+                    )}
+                  </div>
+                  
+                  {selectedSlot?.id === slot.id && (
+                    <CheckCircle2 className="w-6 h-6 text-blue-600 flex-shrink-0" />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSlotsDialog(false);
+                setSelectedSlot(null);
+              }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedSlot) {
+                  setShowSlotsDialog(false);
+                  setShowConfirmDialog(true);
+                } else {
+                  toast.error('Please select a time slot');
+                }
+              }}
+              disabled={!selectedSlot}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Booking</DialogTitle>
+            <DialogDescription>
+              Please review your session details before confirming
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900">Tutor</h4>
+              <div className="flex items-center gap-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={selectedTutor?.avatar} alt={selectedTutor?.name} />
+                  <AvatarFallback>
+                    <User className="w-5 h-5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{selectedTutor?.name}</p>
+                  <p className="text-sm text-gray-600">{selectedTutor?.staffId}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900">Subject</h4>
+              <p className="text-gray-700">{getSubjectName(selectedTutorSubject)}</p>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900">Time Slot</h4>
+              <div className="bg-blue-50 p-3 rounded-lg space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  <span className="text-gray-900">{selectedSlot?.day}</span>
+                  <span className="text-gray-600">
+                    {selectedSlot?.startTime} - {selectedSlot?.endTime}
+                  </span>
+                </div>
+                
+                {selectedSlot?.mode && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {selectedSlot.mode === 'online' || selectedSlot.mode === 'both' ? (
+                      <Badge variant="outline" className="bg-white">
+                        <Video className="w-3 h-3 mr-1" />
+                        Online
+                      </Badge>
+                    ) : null}
+                    {selectedSlot.mode === 'offline' || selectedSlot.mode === 'both' ? (
+                      <Badge variant="outline" className="bg-white">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        Offline
+                      </Badge>
+                    ) : null}
+                  </div>
+                )}
+                
+                {selectedSlot?.location && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span>{selectedSlot.location}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowConfirmDialog(false);
+                setShowSlotsDialog(true);
+              }}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <Button
+              onClick={() => {
+                if (selectedTutor && selectedSlot && selectedTutorSubject) {
+                  // Call the booking handler
+                  onBookSession(selectedTutor.id, selectedTutorSubject, selectedSlot.id);
+                  
+                  // Show success notification
+                  toast.success('Session Booked Successfully!', {
+                    description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`
+                  });
+                  
+                  // Reset state
+                  setShowConfirmDialog(false);
+                  setSelectedTutor(null);
+                  setSelectedTutorSubject('');
+                  setSelectedSlot(null);
+                }
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Confirm Booking
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

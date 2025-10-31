@@ -33,7 +33,6 @@ export function Navigation({ currentUser, currentPage, onNavigate, onLogout }: N
   const studentNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'tutors', label: 'Find Tutors', icon: Users },
-    { id: 'register', label: 'Register', icon: ClipboardList },
     { id: 'sessions', label: 'My Sessions', icon: Calendar },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'profile', label: 'Profile', icon: UserCircle },
