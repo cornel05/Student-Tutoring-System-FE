@@ -148,6 +148,191 @@ export const mockTutoringSessions: TutoringSession[] = [
       },
     ]
   },
+  // Completed sessions for testing feedback functionality
+  {
+    id: 'ts2',
+    studentId: 'student1',
+    tutorId: 't2',
+    subjectId: 's3',
+    status: 'completed',
+    startDate: '2024-06-01',
+    studentName: 'Nguyen Van An',
+    tutorName: 'Dr. Pham Thi Dung',
+    subjectName: 'General Physics 1',
+    meetings: [
+      {
+        id: 'm4',
+        date: '2024-06-05',
+        time: '15:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/987654321',
+        attended: true,
+        notes: 'Mechanics fundamentals'
+      },
+      {
+        id: 'm5',
+        date: '2024-06-12',
+        time: '15:00',
+        duration: 90,
+        type: 'offline',
+        attended: true,
+        notes: 'Newton\'s laws and applications'
+      },
+      {
+        id: 'm6',
+        date: '2024-06-19',
+        time: '15:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/987654321',
+        attended: true,
+        notes: 'Energy and momentum'
+      },
+      {
+        id: 'm7',
+        date: '2024-06-26',
+        time: '15:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/987654321',
+        attended: true,
+        notes: 'Rotational motion'
+      },
+      {
+        id: 'm8',
+        date: '2024-07-03',
+        time: '15:00',
+        duration: 90,
+        type: 'offline',
+        attended: true,
+        notes: 'Final review and exam preparation'
+      }
+    ]
+  },
+  {
+    id: 'ts3',
+    studentId: 'student1',
+    tutorId: 't3',
+    subjectId: 's8',
+    status: 'completed',
+    startDate: '2024-03-10',
+    studentName: 'Nguyen Van An',
+    tutorName: 'MSc. Hoang Van Em',
+    subjectName: 'Computer Architecture',
+    meetings: [
+      {
+        id: 'm9',
+        date: '2024-03-15',
+        time: '16:00',
+        duration: 60,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/555666777',
+        attended: true,
+        notes: 'Introduction to CPU architecture'
+      },
+      {
+        id: 'm10',
+        date: '2024-03-22',
+        time: '16:00',
+        duration: 60,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/555666777',
+        attended: true,
+        notes: 'Memory hierarchy and cache'
+      },
+      {
+        id: 'm11',
+        date: '2024-03-29',
+        time: '16:00',
+        duration: 60,
+        type: 'offline',
+        attended: false,
+        notes: 'Student was absent'
+      },
+      {
+        id: 'm12',
+        date: '2024-04-05',
+        time: '16:00',
+        duration: 60,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/555666777',
+        attended: true,
+        notes: 'Pipelining and instruction-level parallelism'
+      },
+      {
+        id: 'm13',
+        date: '2024-04-12',
+        time: '16:00',
+        duration: 60,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/555666777',
+        attended: true,
+        notes: 'I/O systems and storage'
+      },
+      {
+        id: 'm14',
+        date: '2024-04-19',
+        time: '16:00',
+        duration: 60,
+        type: 'offline',
+        attended: true,
+        notes: 'Final exam preparation'
+      }
+    ]
+  },
+  {
+    id: 'ts4',
+    studentId: 'student1',
+    tutorId: 't1',
+    subjectId: 's12',
+    status: 'completed',
+    startDate: '2024-04-20',
+    studentName: 'Nguyen Van An',
+    tutorName: 'Dr. Le Van Cuong',
+    subjectName: 'Computer Networks',
+    meetings: [
+      {
+        id: 'm15',
+        date: '2024-04-25',
+        time: '14:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/111222333',
+        attended: true,
+        notes: 'OSI model and network layers'
+      },
+      {
+        id: 'm16',
+        date: '2024-05-02',
+        time: '14:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/111222333',
+        attended: true,
+        notes: 'TCP/IP protocol suite'
+      },
+      {
+        id: 'm17',
+        date: '2024-05-09',
+        time: '14:00',
+        duration: 90,
+        type: 'offline',
+        attended: true,
+        notes: 'Routing algorithms and protocols'
+      },
+      {
+        id: 'm18',
+        date: '2024-05-16',
+        time: '14:00',
+        duration: 90,
+        type: 'online',
+        zoomLink: 'https://zoom.us/j/111222333',
+        attended: true,
+        notes: 'Network security basics'
+      }
+    ]
+  }
 ];
 
 export const mockMessages: Message[] = [

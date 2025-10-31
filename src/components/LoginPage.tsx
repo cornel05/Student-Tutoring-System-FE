@@ -3,7 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { useState } from "react";
 
 interface LoginPageProps {
-  onLogin: (role: "student" | "tutor") => void;
+  onLogin: (role: "student" | "tutor" | "coordinator") => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
@@ -78,20 +78,27 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   <p className="text-center text-sm text-gray-500 mb-3">
                     Demo Mode - Select Role:
                   </p>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Button
                       onClick={() => onLogin("student")}
                       variant="outline"
-                      className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
                     >
                       Student
                     </Button>
                     <Button
                       onClick={() => onLogin("tutor")}
                       variant="outline"
-                      className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
                     >
                       Tutor
+                    </Button>
+                    <Button
+                      onClick={() => onLogin("coordinator")}
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
+                    >
+                      Coordinator
                     </Button>
                   </div>
                 </div>
