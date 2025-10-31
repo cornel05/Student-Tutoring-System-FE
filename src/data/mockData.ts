@@ -83,7 +83,8 @@ export const mockTutors: Tutor[] = [
         mode: 'both',
         location: 'Room H1-101, HCMUT',
         zoomLink: 'https://zoom.us/j/math-cuong-mon',
-        capacity: 5
+        capacity: 5,
+        requiresApproval: false
       },
       { 
         id: 'a2', 
@@ -92,7 +93,8 @@ export const mockTutors: Tutor[] = [
         endTime: '16:00',
         mode: 'online',
         zoomLink: 'https://zoom.us/j/math-cuong-wed',
-        capacity: 8
+        capacity: 8,
+        requiresApproval: true
       },
       { 
         id: 'a3', 
@@ -101,7 +103,8 @@ export const mockTutors: Tutor[] = [
         endTime: '12:00',
         mode: 'offline',
         location: 'Room H2-205, HCMUT',
-        capacity: 4
+        capacity: 4,
+        requiresApproval: false
       },
     ],
     maxStudents: 5,
@@ -124,7 +127,8 @@ export const mockTutors: Tutor[] = [
         endTime: '17:00',
         mode: 'offline',
         location: 'Lab Building A3, Room 201',
-        capacity: 6
+        capacity: 6,
+        requiresApproval: false
       },
       { 
         id: 'a5', 
@@ -134,7 +138,8 @@ export const mockTutors: Tutor[] = [
         mode: 'both',
         location: 'Lab Building A3, Room 201',
         zoomLink: 'https://zoom.us/j/physics-dung-thu',
-        capacity: 6
+        capacity: 6,
+        requiresApproval: true
       },
     ],
     maxStudents: 4,
@@ -157,7 +162,8 @@ export const mockTutors: Tutor[] = [
         endTime: '18:00',
         mode: 'online',
         zoomLink: 'https://zoom.us/j/cs-em-mon',
-        capacity: 10
+        capacity: 10,
+        requiresApproval: false
       },
       { 
         id: 'a7', 
@@ -167,7 +173,8 @@ export const mockTutors: Tutor[] = [
         mode: 'both',
         location: 'Computer Lab B4-302',
         zoomLink: 'https://zoom.us/j/cs-em-thu',
-        capacity: 8
+        capacity: 8,
+        requiresApproval: false
       },
     ],
     maxStudents: 6,
@@ -190,7 +197,8 @@ export const mockTutors: Tutor[] = [
         endTime: '11:00',
         mode: 'offline',
         location: 'Room C5-401, Network Lab',
-        capacity: 5
+        capacity: 5,
+        requiresApproval: true
       },
       { 
         id: 'a9', 
@@ -199,7 +207,8 @@ export const mockTutors: Tutor[] = [
         endTime: '16:00',
         mode: 'online',
         zoomLink: 'https://zoom.us/j/network-giang-fri',
-        capacity: 12
+        capacity: 12,
+        requiresApproval: false
       },
     ],
     maxStudents: 5,

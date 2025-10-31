@@ -45,6 +45,7 @@ export interface TimeSlot {
   zoomLink?: string;
   capacity?: number;
   isPublished?: boolean;
+  requiresApproval?: boolean;
 }
 
 export interface BlackoutDate {

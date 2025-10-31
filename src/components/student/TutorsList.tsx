@@ -257,6 +257,12 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       <Badge variant="outline" className="ml-2">
                         {slot.startTime} - {slot.endTime}
                       </Badge>
+                      {slot.requiresApproval && (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                          Approval Required
+                        </Badge>
+                      )}
                     </div>
                     
                     {slot.mode && (
@@ -336,7 +342,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
 
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Confirm Booking</DialogTitle>
             <DialogDescription>
@@ -402,15 +408,31 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 )}
               </div>
             </div>
+
+            {/* Approval Notice */}
+            {selectedSlot?.requiresApproval && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-yellow-900 mb-1">Approval Required</h4>
+                    <p className="text-sm text-yellow-800">
+                      This time slot requires tutor approval. Your booking request will be sent to the tutor for review. You'll receive a notification once the tutor approves or declines your request.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-3 mt-6">
             <Button
               variant="outline"
               onClick={() => {
                 setShowConfirmDialog(false);
                 setShowSlotsDialog(true);
               }}
+              className="flex-1 border-2 border-gray-300"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
@@ -421,10 +443,16 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   // Call the booking handler
                   onBookSession(selectedTutor.id, selectedTutorSubject, selectedSlot.id);
                   
-                  // Show success notification
-                  toast.success('Session Booked Successfully!', {
-                    description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`
-                  });
+                  // Show success notification based on approval requirement
+                  if (selectedSlot.requiresApproval) {
+                    toast.success('Booking Request Sent!', {
+                      description: `Your request has been sent to ${selectedTutor.name}. You'll receive a notification once the tutor reviews your request.`
+                    });
+                  } else {
+                    toast.success('Session Booked Successfully!', {
+                      description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`
+                    });
+                  }
                   
                   // Reset state
                   setShowConfirmDialog(false);
@@ -433,10 +461,14 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   setSelectedSlot(null);
                 }
               }}
-              className="bg-green-600 hover:bg-green-700"
+              className={`flex-1 border-2 ${
+                selectedSlot?.requiresApproval 
+                  ? 'bg-yellow-600 hover:bg-yellow-700 border-yellow-700 text-yellow-50' 
+                  : 'bg-green-600 hover:bg-green-700 border-green-700 text-green-50'
+              }`}
             >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Confirm Booking
+              <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span>{selectedSlot?.requiresApproval ? 'Send Approval Request' : 'Confirm Booking'}</span>
             </Button>
           </DialogFooter>
         </DialogContent>
