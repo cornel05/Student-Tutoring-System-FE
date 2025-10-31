@@ -43,6 +43,7 @@ export function Navigation({ currentUser, currentPage, onNavigate, onLogout }: N
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'schedule', label: 'Schedule', icon: Calendar },
     { id: 'students', label: 'My Students', icon: Users },
+    { id: 'sessions', label: 'My Sessions', icon: ClipboardList },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'profile', label: 'Profile', icon: UserCircle },
   ];
