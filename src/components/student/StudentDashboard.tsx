@@ -109,7 +109,7 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
                 <h3 className="text-orange-900 mb-2">Subjects Need Attention</h3>
                 <p className="text-orange-800 mb-4">
                   You have {needsHelp.length} subject(s) with scores below 7.0. 
-                  We recommend registering for tutoring to improve your performance.
+                  We recommend booking tutoring sessions to improve your performance.
                 </p>
                 <div className="flex gap-3">
                   <Button 
@@ -117,15 +117,7 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     <Users className="mr-2 h-4 w-4" />
-                    Find Tutors
-                  </Button>
-                  <Button 
-                    onClick={() => onNavigate('register')}
-                    variant="outline"
-                    className="border-orange-300 text-orange-700 hover:bg-orange-100"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Register for Tutoring
+                    Find Tutors & Book Sessions
                   </Button>
                 </div>
               </div>

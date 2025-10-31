@@ -4,7 +4,6 @@ import { ConsentDialog } from './components/ConsentDialog';
 import { Navigation } from './components/Navigation';
 import { StudentDashboard } from './components/student/StudentDashboard';
 import { TutorsList } from './components/student/TutorsList';
-import { RegisterTutoring } from './components/student/RegisterTutoring';
 import { MySessions } from './components/student/MySessions';
 import { StudentProfile } from './components/student/StudentProfile';
 import { TutorDashboard } from './components/tutor/TutorDashboard';
@@ -95,11 +94,22 @@ export default function App() {
     setCurrentPage(page);
   };
 
-  const handleRegisterTutor = (tutorId: string, subjectId: string) => {
-    toast.success('Registration successful!', {
-      description: 'Your tutor will contact you soon'
-    });
-    setCurrentPage('sessions');
+  const handleBookSession = (tutorId: string, subjectCode: string, slotId: string) => {
+    // Simulating:
+    // 5. System creates a session record for tutor and student
+    // 6. System updates tutor and student's calendar
+    // 7. System sends booking confirmation notifications to tutor and student
+    
+    console.log('Creating session record:', { tutorId, subjectCode, slotId });
+    console.log('Updating calendars for student and tutor...');
+    console.log('Sending confirmation notifications...');
+    
+    // Note: In a real application, this would make API calls to:
+    // - Create a new tutoring session in the database
+    // - Update both student and tutor calendars
+    // - Send email/push notifications to both parties
+    
+    // The toast notification is already handled in TutorsList.tsx
   };
 
   if (!currentUser) {
@@ -139,9 +149,8 @@ export default function App() {
               <StudentDashboard hasConsent={hasConsent} onNavigate={handleNavigate} />
             )}
             {currentPage === 'tutors' && (
-              <TutorsList onRegister={handleRegisterTutor} />
+              <TutorsList onBookSession={handleBookSession} />
             )}
-            {currentPage === 'register' && <RegisterTutoring />}
             {currentPage === 'sessions' && <MySessions />}
             {currentPage === 'messages' && <Messages userRole="student" />}
             {currentPage === 'profile' && <StudentProfile />}
