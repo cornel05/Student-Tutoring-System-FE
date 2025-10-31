@@ -72,6 +72,8 @@ export interface TutoringSession {
   studentName?: string;
   tutorName?: string;
   subjectName?: string;
+  sessionNotes?: string;
+  materials?: SessionMaterial[];
 }
 
 export interface Meeting {
@@ -83,6 +85,22 @@ export interface Meeting {
   zoomLink?: string;
   attended: boolean;
   notes?: string;
+  meetingNotes?: string;
+  materials?: SessionMaterial[];
+}
+
+export interface SessionMaterial {
+  id: string;
+  name: string;
+  type: 'file' | 'library-link';
+  fileType?: string;
+  fileSize?: number;
+  url: string;
+  description?: string;
+  tags?: string[];
+  visibility: 'private' | 'shared';
+  uploadedAt: string;
+  uploadedBy: string;
 }
 
 export interface Message {
