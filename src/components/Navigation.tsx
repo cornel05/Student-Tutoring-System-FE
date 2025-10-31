@@ -9,7 +9,10 @@ import {
   LogOut,
   GraduationCap,
   BookOpen,
-  ClipboardList
+  ClipboardList,
+  BarChart3,
+  FileText,
+  Award
 } from 'lucide-react';
 import { User } from '../types';
 
@@ -22,6 +25,10 @@ interface NavigationProps {
 
 export function Navigation({ currentUser, currentPage, onNavigate, onLogout }: NavigationProps) {
   const isStudent = currentUser.role === 'student';
+  const isTutor = currentUser.role === 'tutor';
+  const isADS = currentUser.role === 'ads';
+  const isOAA = currentUser.role === 'oaa';
+  const isOSA = currentUser.role === 'osa';
 
   const studentNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
@@ -41,7 +48,31 @@ export function Navigation({ currentUser, currentPage, onNavigate, onLogout }: N
     { id: 'profile', label: 'Profile', icon: UserCircle },
   ];
 
-  const navItems = isStudent ? studentNavItems : tutorNavItems;
+  const adsNavItems = [
+    { id: 'dashboard', label: 'Analytics Dashboard', icon: BarChart3 },
+  ];
+
+  const oaaNavItems = [
+    { id: 'dashboard', label: 'Overview Reports', icon: FileText },
+  ];
+
+  const osaNavItems = [
+    { id: 'dashboard', label: 'Student Affairs', icon: Award },
+  ];
+
+  let navItems = studentNavItems;
+  if (isTutor) navItems = tutorNavItems;
+  if (isADS) navItems = adsNavItems;
+  if (isOAA) navItems = oaaNavItems;
+  if (isOSA) navItems = osaNavItems;
+
+  const getRoleLabel = () => {
+    if (isStudent) return currentUser.studentId;
+    if (isADS) return 'Academic Dept';
+    if (isOAA) return 'Academic Affairs';
+    if (isOSA) return 'Student Affairs';
+    return currentUser.staffId;
+  };
 
   return (
     <div className="bg-white border-b sticky top-0 z-50">
@@ -83,7 +114,7 @@ export function Navigation({ currentUser, currentPage, onNavigate, onLogout }: N
             <div className="hidden sm:block text-right">
               <p className="text-sm text-gray-900">{currentUser.name}</p>
               <p className="text-xs text-gray-600">
-                {isStudent ? currentUser.studentId : currentUser.staffId}
+                {getRoleLabel()}
               </p>
             </div>
             <Avatar>

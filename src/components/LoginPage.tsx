@@ -3,7 +3,7 @@ import { GraduationCap } from "lucide-react";
 import { useState } from "react";
 
 interface LoginPageProps {
-  onLogin: (role: "student" | "tutor" | "coordinator") => void;
+  onLogin: (role: "student" | "tutor" | "ads" | "oaa" | "osa") => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
@@ -78,28 +78,46 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   <p className="text-center text-sm text-gray-500 mb-3">
                     Demo Mode - Select Role:
                   </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      onClick={() => onLogin("student")}
-                      variant="outline"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
-                    >
-                      Student
-                    </Button>
-                    <Button
-                      onClick={() => onLogin("tutor")}
-                      variant="outline"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
-                    >
-                      Tutor
-                    </Button>
-                    <Button
-                      onClick={() => onLogin("coordinator")}
-                      variant="outline"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-sm px-2"
-                    >
-                      Coordinator
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => onLogin("student")}
+                        variant="outline"
+                        className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        Student
+                      </Button>
+                      <Button
+                        onClick={() => onLogin("tutor")}
+                        variant="outline"
+                        className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+                      >
+                        Tutor
+                      </Button>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => onLogin("ads")}
+                        variant="outline"
+                        className="flex-1 border-green-300 text-green-700 hover:bg-green-50"
+                      >
+                        ADS
+                      </Button>
+                      <Button
+                        onClick={() => onLogin("oaa")}
+                        variant="outline"
+                        className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        OAA
+                      </Button>
+                      <Button
+                        onClick={() => onLogin("osa")}
+                        variant="outline"
+                        className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50"
+                      >
+                        OSA
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

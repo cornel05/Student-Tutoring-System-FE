@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'tutor';
+  role: 'student' | 'tutor' | 'ads' | 'oaa' | 'osa';
   studentId?: string;
   staffId?: string;
   major?: string;
