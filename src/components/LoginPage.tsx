@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { GraduationCap, Loader2, Eye, EyeOff } from "lucide-react";
+import { GraduationCap, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 interface LoginPageProps {
@@ -12,7 +12,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [showDemoMode, setShowDemoMode] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -115,78 +114,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
             {/* Login Button */}
             <div className="space-y-4">
-              {!showDemoMode && (
-                <div className="space-y-4">
-                  {/* SSO Login Form */}
-                  <div className="space-y-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="username" className="text-blue-900">
-                        Username
-                      </Label>
-                      <Input
-                        id="username"
-                        type="text"
-                        placeholder="Enter your HCMUT username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        disabled={isLoading}
-                        className="border-blue-200 focus:border-blue-400"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="text-blue-900">
-                        Password
-                      </Label>
-                      <Input
-                        id="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        disabled={isLoading}
-                        className="border-blue-200 focus:border-blue-400"
-                      />
-                    </div>
-
-                    {error && (
-                      <p className="text-sm text-red-600 text-center">
-                        {error}
-                      </p>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={handleSSOLogin}
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Authenticating...
-                      </>
-                    ) : (
-                      <>
-                        <GraduationCap className="mr-2 h-5 w-5" />
-                        Login with SSO
-                      </>
-                    )}
-                  </Button>
-                </div>
-              )}
-
-              {showDemoMode && (
-                <Button
-                  onClick={() => onLogin("student")}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                >
-                  <GraduationCap className="mr-2 h-5 w-5" />
-                  Login with HCMUT SSO
-                </Button>
-              )}
+              <Button
+                onClick={() => onLogin("student")}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <GraduationCap className="mr-2 h-5 w-5" />
+                Login with HCMUT SSO
+              </Button>
 
               {/* Demo Role Selection */}
               {showDemoMode && (
