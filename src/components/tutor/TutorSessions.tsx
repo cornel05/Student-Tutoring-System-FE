@@ -9,7 +9,7 @@ import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Video, 
   CheckCircle2, 
   XCircle,
@@ -35,6 +35,19 @@ import {
   File,
   Download
 } from 'lucide-react';
+import { Calendar } from '../ui/calendar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../ui/popover';
 import {
   Dialog,
   DialogContent,
@@ -93,6 +106,14 @@ export function TutorSessions() {
   const [materialVisibility, setMaterialVisibility] = useState<'private' | 'shared'>('shared');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [sessionMaterials, setSessionMaterials] = useState<SessionMaterial[]>([]);
+
+  // Schedule state
+  const [scheduleDate, setScheduleDate] = useState<Date>();
+  const [scheduleTime, setScheduleTime] = useState('');
+  const [scheduleDuration, setScheduleDuration] = useState('60');
+  const [scheduleType, setScheduleType] = useState<'online' | 'offline'>('online');
+  const [scheduleLocation, setScheduleLocation] = useState('');
+  const [scheduleNotes, setScheduleNotes] = useState('');
 
   const activeSessions = sessions.filter(s => s.status === 'active');
   const completedSessions = sessions.filter(s => s.status === 'completed');
@@ -259,6 +280,53 @@ export function TutorSessions() {
     }
   };
 
+  // Handle schedule confirmation
+  const handleConfirmSchedule = () => {
+    if (!scheduleDate) {
+      toast.error('Please select a date');
+      return;
+    }
+    if (!scheduleTime) {
+      toast.error('Please select a time');
+      return;
+    }
+    if (scheduleType === 'offline' && !scheduleLocation.trim()) {
+      toast.error('Please enter a location for offline meeting');
+      return;
+    }
+
+    const session = sessions.find(s => s.id === selectedSession);
+    if (session) {
+      // Format the schedule details
+      const scheduleDateTime = new Date(scheduleDate);
+      const [hours, minutes] = scheduleTime.split(':');
+      scheduleDateTime.setHours(parseInt(hours), parseInt(minutes));
+
+      toast.success('Session scheduled successfully!', {
+        description: `${session.studentName} will be notified about the new session on ${scheduleDateTime.toLocaleDateString()} at ${scheduleTime}`
+      });
+
+      // Reset schedule form
+      setScheduleDate(undefined);
+      setScheduleTime('');
+      setScheduleDuration('60');
+      setScheduleType('online');
+      setScheduleLocation('');
+      setScheduleNotes('');
+    }
+  };
+
+  // Handle schedule cancellation
+  const handleCancelSchedule = () => {
+    setScheduleDate(undefined);
+    setScheduleTime('');
+    setScheduleDuration('60');
+    setScheduleType('online');
+    setScheduleLocation('');
+    setScheduleNotes('');
+    toast.info('Schedule form cleared');
+  };
+
   // Calculate aggregate feedback statistics
   const getFeedbackStats = () => {
     const feedbacks = Object.values(mockStudentFeedback);
@@ -313,7 +381,7 @@ export function TutorSessions() {
         {activeSessions.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
-              <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <CalendarIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-600 mb-2">No active sessions</h3>
               <p className="text-gray-500">You don't have any active tutoring sessions at the moment</p>
             </CardContent>
@@ -535,13 +603,14 @@ export function TutorSessions() {
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mt-4">
             <TabsList className="w-full h-auto flex-wrap justify-start gap-1 p-1">
-              <TabsTrigger value="progress" className="flex-1 min-w-[140px]">Progress & Attendance</TabsTrigger>
+              <TabsTrigger value="progress" className="flex-1 min-w-[100px]">Progress</TabsTrigger>
               <TabsTrigger value="notes" className="flex-1 min-w-[120px]">Meeting Notes</TabsTrigger>
               <TabsTrigger value="materials" className="flex-1 min-w-[100px]">Materials</TabsTrigger>
+              <TabsTrigger value="schedule" className="flex-1 min-w-[130px]">Coming Schedule</TabsTrigger>
               <TabsTrigger value="feedback" className="flex-1 min-w-[130px]">Student Feedback</TabsTrigger>
             </TabsList>
 
-            {/* Progress & Attendance Tab */}
+            {/* Progress Tab */}
             <TabsContent value="progress" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -588,7 +657,7 @@ export function TutorSessions() {
                               <div className="flex items-center justify-between">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-3 mb-1">
-                                    <Calendar className="w-4 h-4" />
+                                    <CalendarIcon className="w-4 h-4" />
                                     <span className="text-sm font-medium text-gray-900">
                                       {new Date(meeting.date).toLocaleDateString()}
                                     </span>
@@ -648,6 +717,197 @@ export function TutorSessions() {
               </Card>
             </TabsContent>
 
+            {/* Coming Schedule Tab */}
+            <TabsContent value="schedule" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarIcon className="w-5 h-5 text-blue-600" />
+                    Schedule New Session
+                  </CardTitle>
+                  <p className="text-sm text-gray-500 mt-2">
+                    Create a new tutoring session without student intervention
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Date Selection */}
+                  <div className="space-y-2">
+                    <Label>Session Date *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={`w-full justify-start text-left font-normal ${
+                            !scheduleDate && 'text-muted-foreground'
+                          }`}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {scheduleDate ? scheduleDate.toLocaleDateString() : 'Pick a date'}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={scheduleDate}
+                          onSelect={setScheduleDate}
+                          disabled={(date: Date) => date < new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Time and Duration */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="schedule-time">Start Time *</Label>
+                      <Input
+                        id="schedule-time"
+                        type="time"
+                        value={scheduleTime}
+                        onChange={(e) => setScheduleTime(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="schedule-duration">Duration (minutes) *</Label>
+                      <Select value={scheduleDuration} onValueChange={setScheduleDuration}>
+                        <SelectTrigger id="schedule-duration">
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="30">30 minutes</SelectItem>
+                          <SelectItem value="45">45 minutes</SelectItem>
+                          <SelectItem value="60">60 minutes</SelectItem>
+                          <SelectItem value="90">90 minutes</SelectItem>
+                          <SelectItem value="120">120 minutes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Meeting Type */}
+                  <div className="space-y-2">
+                    <Label>Meeting Type *</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Button
+                        type="button"
+                        variant={scheduleType === 'online' ? 'default' : 'outline'}
+                        className={`w-full ${scheduleType === 'online' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                        onClick={() => setScheduleType('online')}
+                      >
+                        <Video className="mr-2 h-4 w-4" />
+                        Online
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={scheduleType === 'offline' ? 'default' : 'outline'}
+                        className={`w-full ${scheduleType === 'offline' ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+                        onClick={() => setScheduleType('offline')}
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        Offline
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Location (for offline) */}
+                  {scheduleType === 'offline' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="schedule-location">Location *</Label>
+                      <Input
+                        id="schedule-location"
+                        placeholder="e.g., CS1 Building, Room 201"
+                        value={scheduleLocation}
+                        onChange={(e) => setScheduleLocation(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {/* Meeting Link (for online) */}
+                  {scheduleType === 'online' && (
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Video className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-blue-900 mb-1">Online Meeting Link</p>
+                          <p className="text-xs text-blue-700">
+                            A video conference link will be automatically generated and shared with the student after confirmation.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Session Notes */}
+                  <div className="space-y-2">
+                    <Label htmlFor="schedule-notes">Session Notes (Optional)</Label>
+                    <Textarea
+                      id="schedule-notes"
+                      placeholder="Add any notes or topics to be covered in this session..."
+                      value={scheduleNotes}
+                      onChange={(e) => setScheduleNotes(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                  </div>
+
+                  {/* Summary Card */}
+                  {scheduleDate && scheduleTime && (
+                    <div className="p-4 bg-gradient-to-br from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-900 mb-3">Schedule Summary</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <CalendarIcon className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700">
+                            {scheduleDate.toLocaleDateString('en-US', { 
+                              weekday: 'long', 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-gray-600" />
+                          <span className="text-gray-700">
+                            {scheduleTime} ({scheduleDuration} minutes)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {scheduleType === 'online' ? (
+                            <Video className="w-4 h-4 text-gray-600" />
+                          ) : (
+                            <User className="w-4 h-4 text-gray-600" />
+                          )}
+                          <span className="text-gray-700">
+                            {scheduleType === 'online' ? 'Online Session' : `Offline at ${scheduleLocation || 'TBD'}`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button
+                      onClick={handleCancelSchedule}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleConfirmSchedule}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      Confirm Schedule
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             {/* Meeting Notes Tab */}
             <TabsContent value="notes" className="space-y-4">
               <Card>
@@ -663,7 +923,7 @@ export function TutorSessions() {
                     {session?.meetings.filter(m => m.notes || m.meetingNotes).map((meeting) => (
                       <div key={meeting.id} className="p-4 bg-gray-50 rounded-lg border">
                         <div className="flex items-center gap-3 mb-3">
-                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <CalendarIcon className="w-4 h-4 text-gray-400" />
                           <span className="text-sm font-medium text-gray-900">
                             {new Date(meeting.date).toLocaleDateString()}
                           </span>
