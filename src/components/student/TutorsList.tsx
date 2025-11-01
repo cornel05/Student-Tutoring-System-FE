@@ -15,7 +15,10 @@ import {
   CheckCircle2,
   MapPin,
   Video,
-  ArrowLeft
+  ArrowLeft,
+  Filter,
+  X,
+  Sparkles
 } from 'lucide-react';
 import { mockTutors, mockSubjects } from '../../data/mockData';
 import { Tutor, TimeSlot } from '../../types';
@@ -42,8 +45,51 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   
+  // New filter states
+  const [selectedCampuses, setSelectedCampuses] = useState<string[]>([]);
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [selectedTimeSlots, setSelectedTimeSlots] = useState<string[]>([]);
+  const [selectedMethods, setSelectedMethods] = useState<string[]>([]);
+  const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
+  const [useAIRecommendations, setUseAIRecommendations] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  
   const tutors = mockTutors;
   const subjects = mockSubjects;
+
+  // Filter options
+  const campusOptions = [
+    { value: 'cs1', label: 'CS1 - Lý Thường Kiệt' },
+    { value: 'cs2', label: 'CS2 - Dĩ An' }
+  ];
+
+  const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+  const timeSlotOptions = [
+    { value: '07:00-09:00', label: '7:00 AM - 9:00 AM' },
+    { value: '09:00-11:00', label: '9:00 AM - 11:00 AM' },
+    { value: '11:00-13:00', label: '11:00 AM - 1:00 PM' },
+    { value: '13:00-15:00', label: '1:00 PM - 3:00 PM' },
+    { value: '15:00-17:00', label: '3:00 PM - 5:00 PM' },
+    { value: '17:00-19:00', label: '5:00 PM - 7:00 PM' },
+    { value: '19:00-21:00', label: '7:00 PM - 9:00 PM' }
+  ];
+
+  const methodOptions = [
+    { value: 'online', label: 'Online', icon: Video },
+    { value: 'offline', label: 'Offline', icon: MapPin }
+  ];
+
+  const ratingOptions = [5, 4, 3, 2, 1];
+
+  // Helper function to check if time slot matches filter
+  const isTimeInRange = (time: string, range: string) => {
+    const [rangeStart, rangeEnd] = range.split('-');
+    const timeNum = parseInt(time.replace(':', ''));
+    const startNum = parseInt(rangeStart.replace(':', ''));
+    const endNum = parseInt(rangeEnd.replace(':', ''));
+    return timeNum >= startNum && timeNum < endNum;
+  };
 
   // Get unique subjects that have tutors
   const availableSubjects = Array.from(
@@ -51,15 +97,119 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   ).map(subjectCode => subjects.find(s => s.code === subjectCode)).filter(Boolean);
 
   const filteredTutors = tutors.filter(tutor => {
+    // Search filter
     const matchesSearch = tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          tutor.staffId.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Subject filter
     const matchesSubject = selectedSubject === 'all' || tutor.subjects.includes(selectedSubject);
-    return matchesSearch && matchesSubject;
+    
+    // Campus filter (mock - assuming location contains campus info)
+    const matchesCampus = selectedCampuses.length === 0 || 
+      selectedCampuses.some(campus => 
+        tutor.availability.some(slot => 
+          slot.location?.toLowerCase().includes(campus === 'cs1' ? 'h1' : 'h2') ||
+          slot.location?.toLowerCase().includes(campus === 'cs1' ? 'ly thuong kiet' : 'di an')
+        )
+      );
+    
+    // Day filter
+    const matchesDay = selectedDays.length === 0 ||
+      selectedDays.some(day => 
+        tutor.availability.some(slot => slot.day === day)
+      );
+    
+    // Time slot filter
+    const matchesTimeSlot = selectedTimeSlots.length === 0 ||
+      selectedTimeSlots.some(timeRange =>
+        tutor.availability.some(slot => 
+          isTimeInRange(slot.startTime, timeRange) || isTimeInRange(slot.endTime, timeRange)
+        )
+      );
+    
+    // Method filter
+    const matchesMethod = selectedMethods.length === 0 ||
+      selectedMethods.some(method =>
+        tutor.availability.some(slot => 
+          slot.mode === method || slot.mode === 'both'
+        )
+      );
+    
+    // Rating filter
+    const matchesRating = selectedRatings.length === 0 ||
+      (tutor.rating && selectedRatings.some(rating => tutor.rating! >= rating && tutor.rating! < rating + 1));
+    
+    return matchesSearch && matchesSubject && matchesCampus && matchesDay && matchesTimeSlot && matchesMethod && matchesRating;
   });
+
+  // AI recommended tutors (mock - just sorts by rating when enabled)
+  const displayTutors = useAIRecommendations 
+    ? [...filteredTutors].sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    : filteredTutors;
 
   const getSubjectName = (code: string) => {
     return subjects.find(s => s.code === code)?.name || code;
   };
+
+  // Toggle filter functions
+  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
+    if (selected.includes(value)) {
+      setter(selected.filter(v => v !== value));
+    } else {
+      setter([...selected, value]);
+    }
+  };
+
+  const toggleAllCampuses = () => {
+    if (selectedCampuses.length === campusOptions.length) {
+      setSelectedCampuses([]);
+    } else {
+      setSelectedCampuses(campusOptions.map(c => c.value));
+    }
+  };
+
+  const toggleAllDays = () => {
+    if (selectedDays.length === dayOptions.length) {
+      setSelectedDays([]);
+    } else {
+      setSelectedDays([...dayOptions]);
+    }
+  };
+
+  const toggleAllMethods = () => {
+    if (selectedMethods.length === methodOptions.length) {
+      setSelectedMethods([]);
+    } else {
+      setSelectedMethods(methodOptions.map(m => m.value));
+    }
+  };
+
+  const toggleRatingFilter = (value: number) => {
+    if (selectedRatings.includes(value)) {
+      setSelectedRatings(selectedRatings.filter(v => v !== value));
+    } else {
+      setSelectedRatings([...selectedRatings, value]);
+    }
+  };
+
+  const clearAllFilters = () => {
+    setSelectedCampuses([]);
+    setSelectedDays([]);
+    setSelectedTimeSlots([]);
+    setSelectedMethods([]);
+    setSelectedRatings([]);
+    setSelectedSubject('all');
+    setSearchTerm('');
+  };
+
+  const activeFilterCount = 
+    selectedCampuses.length + 
+    selectedDays.length + 
+    selectedTimeSlots.length + 
+    selectedMethods.length + 
+    selectedRatings.length +
+    (selectedSubject !== 'all' ? 1 : 0);
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -68,24 +218,91 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
         <p className="text-gray-600">Find expert tutors to help you succeed in your studies</p>
       </div>
 
-      {/* Filters */}
+      {/* Search and AI Recommendations */}
       <Card>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm text-gray-600 mb-2 block">Search Tutors</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search by name or staff ID..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          <div className="space-y-4">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search by name or staff ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <div>
-              <label className="text-sm text-gray-600 mb-2 block">Filter by Subject</label>
+
+            {/* AI Recommendations Toggle */}
+            <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+              <label className="flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="ai-recommendations"
+                  checked={useAIRecommendations}
+                  onChange={(e) => setUseAIRecommendations(e.target.checked)}
+                  className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5 border-gray-300 rounded cursor-pointer"
+                />
+              </label>
+              <label
+                htmlFor="ai-recommendations"
+                className="flex items-center gap-2 text-sm font-medium cursor-pointer select-none"
+              >
+                <Sparkles className="w-4 h-4 text-purple-600" />
+                <span className="text-purple-900">Use AI Recommendations</span>
+                <span className="text-purple-600 text-xs">(Sort by best match)</span>
+              </label>
+            </div>
+
+            {/* Filter Toggle Button */}
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="outline"
+              className="w-full flex items-center justify-between"
+            >
+              <span className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                Advanced Filters
+                {activeFilterCount > 0 && (
+                  <Badge className="bg-blue-600 text-white">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </span>
+              <span className="text-xs text-gray-500">
+                {showFilters ? 'Hide' : 'Show'}
+              </span>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Advanced Filters Panel */}
+      {showFilters && (
+        <Card className="border-2 border-blue-200">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filter Options
+              </CardTitle>
+              {activeFilterCount > 0 && (
+                <Button
+                  onClick={clearAllFilters}
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Clear All
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Subject Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Subject</label>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
@@ -99,13 +316,324 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 ))}
               </select>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+
+            {/* Campus Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Campus</label>
+                {selectedCampuses.length > 0 && (
+                  <Button
+                    onClick={() => setSelectedCampuses([])}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={toggleAllCampuses}
+                  variant={selectedCampuses.length === campusOptions.length ? "default" : "outline"}
+                  size="sm"
+                  className={selectedCampuses.length === campusOptions.length ? "bg-purple-600 hover:bg-purple-700" : ""}
+                >
+                  {selectedCampuses.length === campusOptions.length && (
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                  )}
+                  All Campuses
+                </Button>
+                {campusOptions.map((campus) => (
+                  <Button
+                    key={campus.value}
+                    onClick={() => toggleFilter(campus.value, selectedCampuses, setSelectedCampuses)}
+                    variant={selectedCampuses.includes(campus.value) ? "default" : "outline"}
+                    size="sm"
+                    className={selectedCampuses.includes(campus.value) ? "bg-blue-600" : ""}
+                  >
+                    {selectedCampuses.includes(campus.value) && (
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                    )}
+                    {campus.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Learning Time Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Learning Day</label>
+                {selectedDays.length > 0 && (
+                  <Button
+                    onClick={() => setSelectedDays([])}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={toggleAllDays}
+                  variant={selectedDays.length === dayOptions.length ? "default" : "outline"}
+                  size="sm"
+                  className={selectedDays.length === dayOptions.length ? "bg-purple-600 hover:bg-purple-700" : ""}
+                >
+                  {selectedDays.length === dayOptions.length && (
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                  )}
+                  All Days
+                </Button>
+                {dayOptions.map((day) => (
+                  <Button
+                    key={day}
+                    onClick={() => toggleFilter(day, selectedDays, setSelectedDays)}
+                    variant={selectedDays.includes(day) ? "default" : "outline"}
+                    size="sm"
+                    className={selectedDays.includes(day) ? "bg-blue-600" : ""}
+                  >
+                    {selectedDays.includes(day) && (
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                    )}
+                    {day.substring(0, 3)}
+                  </Button>
+                ))}
+              </div>
+              
+              {selectedDays.length > 0 && (
+                <div className="space-y-2 pl-4 border-l-2 border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-gray-600">Time Slots</label>
+                    {selectedTimeSlots.length > 0 && (
+                      <Button
+                        onClick={() => setSelectedTimeSlots([])}
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {timeSlotOptions.map((slot) => (
+                      <Button
+                        key={slot.value}
+                        onClick={() => toggleFilter(slot.value, selectedTimeSlots, setSelectedTimeSlots)}
+                        variant={selectedTimeSlots.includes(slot.value) ? "default" : "outline"}
+                        size="sm"
+                        className={selectedTimeSlots.includes(slot.value) ? "bg-blue-600" : ""}
+                      >
+                        {selectedTimeSlots.includes(slot.value) && (
+                          <CheckCircle2 className="w-3 h-3 mr-1" />
+                        )}
+                        {slot.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Method Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Teaching Method</label>
+                {selectedMethods.length > 0 && (
+                  <Button
+                    onClick={() => setSelectedMethods([])}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={toggleAllMethods}
+                  variant={selectedMethods.length === methodOptions.length ? "default" : "outline"}
+                  size="sm"
+                  className={selectedMethods.length === methodOptions.length ? "bg-purple-600 hover:bg-purple-700 text-white" : "hover:bg-gray-100"}
+                >
+                  {selectedMethods.length === methodOptions.length && (
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                  )}
+                  All Methods
+                </Button>
+                {methodOptions.map((method) => (
+                  <Button
+                    key={method.value}
+                    onClick={() => toggleFilter(method.value, selectedMethods, setSelectedMethods)}
+                    variant={selectedMethods.includes(method.value) ? "default" : "outline"}
+                    size="sm"
+                    className={selectedMethods.includes(method.value) ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                  >
+                    {selectedMethods.includes(method.value) ? (
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                    ) : (
+                      <method.icon className="w-3 h-3 mr-1" />
+                    )}
+                    {method.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rating Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium text-gray-700">Minimum Rating</label>
+                {selectedRatings.length > 0 && (
+                  <Button
+                    onClick={() => setSelectedRatings([])}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {ratingOptions.map((rating) => (
+                  <Button
+                    key={rating}
+                    onClick={() => toggleRatingFilter(rating)}
+                    variant={selectedRatings.includes(rating) ? "default" : "outline"}
+                    size="sm"
+                    className={selectedRatings.includes(rating) ? "bg-blue-500" : ""}
+                  >
+                    {selectedRatings.includes(rating) && (
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                    )}
+                    <Star className="w-3 h-3 mr-1 fill-current" />
+                    {rating}+
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Filters Summary */}
+            {activeFilterCount > 0 && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-700">
+                    Active Filters ({activeFilterCount})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedCampuses.map((campus) => (
+                    <Badge key={campus} variant="secondary" className="gap-1 pr-1">
+                      <span>{campusOptions.find(c => c.value === campus)?.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFilter(campus, selectedCampuses, setSelectedCampuses);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {selectedDays.map((day) => (
+                    <Badge key={day} variant="secondary" className="gap-1 pr-1">
+                      <span>{day}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFilter(day, selectedDays, setSelectedDays);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {selectedTimeSlots.map((slot) => (
+                    <Badge key={slot} variant="secondary" className="gap-1 pr-1">
+                      <span>{timeSlotOptions.find(s => s.value === slot)?.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFilter(slot, selectedTimeSlots, setSelectedTimeSlots);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {selectedMethods.map((method) => (
+                    <Badge key={method} variant="secondary" className="gap-1 pr-1">
+                      <span>{methodOptions.find(m => m.value === method)?.label}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFilter(method, selectedMethods, setSelectedMethods);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {selectedRatings.map((rating) => (
+                    <Badge key={rating} variant="secondary" className="gap-1 pr-1">
+                      <span>{rating}+ Stars</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleRatingFilter(rating);
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {selectedSubject !== 'all' && (
+                    <Badge variant="secondary" className="gap-1 pr-1">
+                      <span>{selectedSubject}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSubject('all');
+                        }}
+                        className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                      >
+                        <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Results Count */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-600">
+          Found <span className="font-semibold text-gray-900">{displayTutors.length}</span> tutor{displayTutors.length !== 1 ? 's' : ''}
+          {useAIRecommendations && (
+            <span className="ml-2 text-purple-600 font-medium">
+              (AI Recommended)
+            </span>
+          )}
+        </p>
+      </div>
 
       {/* Tutors Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {filteredTutors.map((tutor) => (
+        {displayTutors.map((tutor) => (
           <Card key={tutor.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start gap-4">
@@ -218,12 +746,21 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
         ))}
       </div>
 
-      {filteredTutors.length === 0 && (
+      {displayTutors.length === 0 && (
         <Card>
           <CardContent className="p-12 text-center">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-gray-600 mb-2">No tutors found</h3>
             <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            {activeFilterCount > 0 && (
+              <Button
+                onClick={clearAllFilters}
+                variant="outline"
+                className="mt-4"
+              >
+                Clear All Filters
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
