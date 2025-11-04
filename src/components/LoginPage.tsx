@@ -18,22 +18,22 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   // Mock SSO validation function
   const handleSSOLogin = async () => {
     setError("");
-    
+
     if (!username.trim() || !password.trim()) {
       setError("Please enter both username and password");
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       // Simulate SSO validation API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       // Mock role determination based on username prefix
       // In a real implementation, this would come from the SSO response
       let role: "student" | "tutor" | "ads" | "oaa" | "osa" = "student";
-      
+
       if (username.toLowerCase().startsWith("tutor")) {
         role = "tutor";
       } else if (username.toLowerCase().startsWith("ads")) {
@@ -43,7 +43,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       } else if (username.toLowerCase().startsWith("osa")) {
         role = "osa";
       }
-      
+
       // Simulate successful validation
       onLogin(role);
     } catch (err) {

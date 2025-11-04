@@ -1,29 +1,33 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Progress } from '../ui/progress';
-import { 
-  BookOpen, 
-  TrendingUp, 
-  Award, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Progress } from "../ui/progress";
+import {
+  BookOpen,
+  TrendingUp,
+  Award,
   AlertCircle,
   Users,
   Calendar,
-  MessageSquare
-} from 'lucide-react';
-import { Subject } from '../../types';
-import { mockSubjects } from '../../data/mockData';
+  MessageSquare,
+} from "lucide-react";
+import { Subject } from "../../types";
+import { mockSubjects } from "../../data/mockData";
 
 interface StudentDashboardProps {
   hasConsent: boolean;
   onNavigate: (page: string) => void;
 }
 
-export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardProps) {
+export function StudentDashboard({
+  hasConsent,
+  onNavigate,
+}: StudentDashboardProps) {
   const subjects = mockSubjects;
   const needsHelp = subjects.filter(s => s.score && s.score < 7.0);
-  const averageScore = subjects.reduce((acc, s) => acc + (s.score || 0), 0) / subjects.length;
+  const averageScore =
+    subjects.reduce((acc, s) => acc + (s.score || 0), 0) / subjects.length;
   const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
 
   if (!hasConsent) {
@@ -34,8 +38,8 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
             <AlertCircle className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
             <h3 className="text-yellow-900 mb-2">Limited Access</h3>
             <p className="text-yellow-800 mb-4">
-              You have not granted permission to access your academic data. 
-              Many features are unavailable.
+              You have not granted permission to access your academic data. Many
+              features are unavailable.
             </p>
             <p className="text-sm text-yellow-700">
               Please log out and log in again to grant permission.
@@ -106,14 +110,17 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
             <div className="flex items-start gap-4">
               <AlertCircle className="w-6 h-6 text-orange-600 flex-shrink-0 mt-1" />
               <div className="flex-1">
-                <h3 className="text-orange-900 mb-2">Subjects Need Attention</h3>
+                <h3 className="text-orange-900 mb-2">
+                  Subjects Need Attention
+                </h3>
                 <p className="text-orange-800 mb-4">
-                  You have {needsHelp.length} subject(s) with scores below 7.0. 
-                  We recommend booking tutoring sessions to improve your performance.
+                  You have {needsHelp.length} subject(s) with scores below 7.0.
+                  We recommend booking tutoring sessions to improve your
+                  performance.
                 </p>
                 <div className="flex gap-3">
-                  <Button 
-                    onClick={() => onNavigate('tutors')}
+                  <Button
+                    onClick={() => onNavigate("tutors")}
                     className="bg-orange-600 hover:bg-orange-700"
                   >
                     <Users className="mr-2 h-4 w-4" />
@@ -136,15 +143,15 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {subjects.map((subject) => {
+            {subjects.map(subject => {
               const needsImprovement = subject.score && subject.score < 7.0;
               return (
-                <div 
+                <div
                   key={subject.id}
                   className={`p-4 rounded-lg border-2 transition-all ${
-                    needsImprovement 
-                      ? 'border-orange-300 bg-orange-50' 
-                      : 'border-gray-200 bg-white'
+                    needsImprovement
+                      ? "border-orange-300 bg-orange-50"
+                      : "border-gray-200 bg-white"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -162,27 +169,36 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
                         )}
                       </div>
                       <p className="text-sm text-gray-600">
-                        {subject.credits} credits • {subject.semester} {subject.year}
+                        {subject.credits} credits • {subject.semester}{" "}
+                        {subject.year}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className={`text-2xl ${
-                        needsImprovement ? 'text-orange-600' : 'text-green-600'
-                      }`}>
+                      <div
+                        className={`text-2xl ${
+                          needsImprovement
+                            ? "text-orange-600"
+                            : "text-green-600"
+                        }`}
+                      >
                         {subject.score?.toFixed(1)}
                       </div>
                       <p className="text-xs text-gray-500">/ 10.0</p>
                     </div>
                   </div>
-                  <Progress 
-                    value={(subject.score || 0) * 10} 
-                    className={needsImprovement ? '[&>div]:bg-orange-500' : '[&>div]:bg-green-500'}
+                  <Progress
+                    value={(subject.score || 0) * 10}
+                    className={
+                      needsImprovement
+                        ? "[&>div]:bg-orange-500"
+                        : "[&>div]:bg-green-500"
+                    }
                   />
                   {needsImprovement && (
                     <div className="mt-3 flex gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={() => onNavigate('tutors')}
+                      <Button
+                        size="sm"
+                        onClick={() => onNavigate("tutors")}
                         className="bg-orange-600 hover:bg-orange-700 text-xs"
                       >
                         Find Tutor for {subject.code}
@@ -198,23 +214,36 @@ export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardPro
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('tutors')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("tutors")}
+        >
           <CardContent className="p-6 text-center">
             <Users className="w-12 h-12 text-blue-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">Browse Tutors</h3>
-            <p className="text-sm text-gray-600">Find expert tutors for your subjects</p>
+            <p className="text-sm text-gray-600">
+              Find expert tutors for your subjects
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('sessions')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("sessions")}
+        >
           <CardContent className="p-6 text-center">
             <Calendar className="w-12 h-12 text-green-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">My Sessions</h3>
-            <p className="text-sm text-gray-600">View and manage your tutoring sessions</p>
+            <p className="text-sm text-gray-600">
+              View and manage your tutoring sessions
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('messages')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("messages")}
+        >
           <CardContent className="p-6 text-center">
             <MessageSquare className="w-12 h-12 text-purple-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">Messages</h3>

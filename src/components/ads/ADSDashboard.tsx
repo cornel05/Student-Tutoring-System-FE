@@ -1,35 +1,35 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { 
-  TrendingUp, 
-  Users, 
-  BookOpen, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import {
+  TrendingUp,
+  Users,
+  BookOpen,
   Award,
   Download,
   Filter,
   Calendar,
-  BarChart3
-} from 'lucide-react';
-import { mockAnalyticsData } from '../../data/mockData';
-import { toast } from 'sonner';
+  BarChart3,
+} from "lucide-react";
+import { mockAnalyticsData } from "../../data/mockData";
+import { toast } from "sonner";
 
 export function ADSDashboard() {
-  const [selectedCourse, setSelectedCourse] = useState<string>('all');
-  const [selectedCohort, setSelectedCohort] = useState<string>('all');
-  const [selectedTerm, setSelectedTerm] = useState<string>('all');
+  const [selectedCourse, setSelectedCourse] = useState<string>("all");
+  const [selectedCohort, setSelectedCohort] = useState<string>("all");
+  const [selectedTerm, setSelectedTerm] = useState<string>("all");
 
   const analytics = mockAnalyticsData;
 
   const handleExportCSV = () => {
-    toast.success('CSV Export', {
-      description: 'Analytics report exported successfully'
+    toast.success("CSV Export", {
+      description: "Analytics report exported successfully",
     });
   };
 
   const handleExportPDF = () => {
-    toast.success('PDF Export', {
-      description: 'Analytics report exported successfully'
+    toast.success("PDF Export", {
+      description: "Analytics report exported successfully",
     });
   };
 
@@ -37,7 +37,9 @@ export function ADSDashboard() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-gray-900 mb-2">Academic Department Analytics</h1>
-        <p className="text-gray-600">Monitor course performance, student engagement, and tutoring outcomes</p>
+        <p className="text-gray-600">
+          Monitor course performance, student engagement, and tutoring outcomes
+        </p>
       </div>
 
       {/* Filters Card */}
@@ -54,11 +56,11 @@ export function ADSDashboard() {
               <label className="text-sm text-gray-600 mb-2 block">Course</label>
               <select
                 value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
+                onChange={e => setSelectedCourse(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm"
               >
                 <option value="all">All Courses</option>
-                {analytics.courses.map((course) => (
+                {analytics.courses.map(course => (
                   <option key={course.code} value={course.code}>
                     {course.code} - {course.name}
                   </option>
@@ -70,7 +72,7 @@ export function ADSDashboard() {
               <label className="text-sm text-gray-600 mb-2 block">Cohort</label>
               <select
                 value={selectedCohort}
-                onChange={(e) => setSelectedCohort(e.target.value)}
+                onChange={e => setSelectedCohort(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm"
               >
                 <option value="all">All Cohorts</option>
@@ -85,7 +87,7 @@ export function ADSDashboard() {
               <label className="text-sm text-gray-600 mb-2 block">Term</label>
               <select
                 value={selectedTerm}
-                onChange={(e) => setSelectedTerm(e.target.value)}
+                onChange={e => setSelectedTerm(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm"
               >
                 <option value="all">All Terms</option>
@@ -98,7 +100,7 @@ export function ADSDashboard() {
           </div>
 
           <div className="flex gap-3 mt-4">
-            <Button 
+            <Button
               onClick={handleExportCSV}
               variant="outline"
               className="flex-1"
@@ -106,7 +108,7 @@ export function ADSDashboard() {
               <Download className="w-4 h-4 mr-2" />
               Export as CSV
             </Button>
-            <Button 
+            <Button
               onClick={handleExportPDF}
               variant="outline"
               className="flex-1"
@@ -156,8 +158,12 @@ export function ADSDashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-100 text-sm mb-1">Avg Grade Improvement</p>
-                <p className="text-3xl">+{analytics.kpis.avgGradeImprovement}</p>
+                <p className="text-purple-100 text-sm mb-1">
+                  Avg Grade Improvement
+                </p>
+                <p className="text-3xl">
+                  +{analytics.kpis.avgGradeImprovement}
+                </p>
                 <p className="text-xs text-purple-100 mt-2">
                   Students with tutoring
                 </p>
@@ -173,9 +179,7 @@ export function ADSDashboard() {
               <div>
                 <p className="text-orange-100 text-sm mb-1">Success Rate</p>
                 <p className="text-3xl">{analytics.kpis.successRate}%</p>
-                <p className="text-xs text-orange-100 mt-2">
-                  Course pass rate
-                </p>
+                <p className="text-xs text-orange-100 mt-2">Course pass rate</p>
               </div>
               <BarChart3 className="w-12 h-12 text-orange-200 opacity-50" />
             </div>
@@ -196,15 +200,25 @@ export function ADSDashboard() {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-3 px-4 text-sm text-gray-600">Course</th>
-                  <th className="text-left py-3 px-4 text-sm text-gray-600">Students Enrolled</th>
-                  <th className="text-left py-3 px-4 text-sm text-gray-600">With Tutoring</th>
-                  <th className="text-left py-3 px-4 text-sm text-gray-600">Pass Rate</th>
-                  <th className="text-left py-3 px-4 text-sm text-gray-600">Avg Score</th>
+                  <th className="text-left py-3 px-4 text-sm text-gray-600">
+                    Course
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm text-gray-600">
+                    Students Enrolled
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm text-gray-600">
+                    With Tutoring
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm text-gray-600">
+                    Pass Rate
+                  </th>
+                  <th className="text-left py-3 px-4 text-sm text-gray-600">
+                    Avg Score
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {analytics.courses.map((course) => (
+                {analytics.courses.map(course => (
                   <tr key={course.code} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div>
@@ -214,18 +228,28 @@ export function ADSDashboard() {
                     </td>
                     <td className="py-3 px-4 text-sm">{course.enrolled}</td>
                     <td className="py-3 px-4 text-sm">
-                      {course.withTutoring} ({((course.withTutoring / course.enrolled) * 100).toFixed(0)}%)
+                      {course.withTutoring} (
+                      {((course.withTutoring / course.enrolled) * 100).toFixed(
+                        0
+                      )}
+                      %)
                     </td>
                     <td className="py-3 px-4">
-                      <span className={`text-sm px-2 py-1 rounded ${
-                        course.passRate >= 80 ? 'bg-green-100 text-green-700' :
-                        course.passRate >= 60 ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
+                      <span
+                        className={`text-sm px-2 py-1 rounded ${
+                          course.passRate >= 80
+                            ? "bg-green-100 text-green-700"
+                            : course.passRate >= 60
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-red-100 text-red-700"
+                        }`}
+                      >
                         {course.passRate}%
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">{course.avgScore.toFixed(1)}</td>
+                    <td className="py-3 px-4 text-sm">
+                      {course.avgScore.toFixed(1)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -245,7 +269,9 @@ export function ADSDashboard() {
               <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg">
                 <div>
                   <p className="text-sm text-gray-600">Students Seeking Help</p>
-                  <p className="text-2xl text-gray-900">{analytics.kpis.studentsSeekingHelp}</p>
+                  <p className="text-2xl text-gray-900">
+                    {analytics.kpis.studentsSeekingHelp}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-blue-600">45% of total</p>
@@ -254,20 +280,33 @@ export function ADSDashboard() {
 
               <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-gray-600">Improved After Tutoring</p>
-                  <p className="text-2xl text-gray-900">{analytics.kpis.improvedAfterTutoring}</p>
+                  <p className="text-sm text-gray-600">
+                    Improved After Tutoring
+                  </p>
+                  <p className="text-2xl text-gray-900">
+                    {analytics.kpis.improvedAfterTutoring}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-green-600">
-                    {((analytics.kpis.improvedAfterTutoring / analytics.kpis.studentsSeekingHelp) * 100).toFixed(0)}% success
+                    {(
+                      (analytics.kpis.improvedAfterTutoring /
+                        analytics.kpis.studentsSeekingHelp) *
+                      100
+                    ).toFixed(0)}
+                    % success
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center justify-between p-4 bg-purple-50 rounded-lg">
                 <div>
-                  <p className="text-sm text-gray-600">Average Sessions per Student</p>
-                  <p className="text-2xl text-gray-900">{analytics.kpis.avgSessionsPerStudent}</p>
+                  <p className="text-sm text-gray-600">
+                    Average Sessions per Student
+                  </p>
+                  <p className="text-2xl text-gray-900">
+                    {analytics.kpis.avgSessionsPerStudent}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-purple-600">Over semester</p>
@@ -291,7 +330,9 @@ export function ADSDashboard() {
                 <p className="text-xs text-gray-600 mb-2">
                   MT2013, CO3021, CO3005 have highest tutoring requests
                 </p>
-                <p className="text-xs text-blue-600">Consider increasing tutor allocation</p>
+                <p className="text-xs text-blue-600">
+                  Consider increasing tutor allocation
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg">
@@ -302,7 +343,9 @@ export function ADSDashboard() {
                 <p className="text-xs text-gray-600 mb-2">
                   Monday 14:00-16:00, Wednesday 14:00-16:00
                 </p>
-                <p className="text-xs text-blue-600">Optimize scheduling around these slots</p>
+                <p className="text-xs text-blue-600">
+                  Optimize scheduling around these slots
+                </p>
               </div>
 
               <div className="p-4 border rounded-lg">
@@ -313,7 +356,9 @@ export function ADSDashboard() {
                 <p className="text-xs text-gray-600 mb-2">
                   4.6/5.0 average rating across all tutors
                 </p>
-                <p className="text-xs text-blue-600">Excellent program effectiveness</p>
+                <p className="text-xs text-blue-600">
+                  Excellent program effectiveness
+                </p>
               </div>
             </div>
           </CardContent>
