@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { 
-  User, 
-  Clock, 
-  Users, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import {
+  User,
+  Clock,
+  Users,
   Star,
   Mail,
   Calendar,
@@ -18,11 +18,11 @@ import {
   ArrowLeft,
   Filter,
   X,
-  Sparkles
-} from 'lucide-react';
-import { mockTutors, mockSubjects } from '../../data/mockData';
-import { Tutor, TimeSlot } from '../../types';
-import { toast } from 'sonner';
+  Sparkles,
+} from "lucide-react";
+import { mockTutors, mockSubjects } from "../../data/mockData";
+import { Tutor, TimeSlot } from "../../types";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -30,21 +30,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
+} from "../ui/dialog";
 
 interface TutorsListProps {
   onBookSession: (tutorId: string, subjectId: string, slotId: string) => void;
 }
 
 export function TutorsList({ onBookSession }: TutorsListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSubject, setSelectedSubject] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
-  const [selectedTutorSubject, setSelectedTutorSubject] = useState<string>('');
+  const [selectedTutorSubject, setSelectedTutorSubject] = useState<string>("");
   const [showSlotsDialog, setShowSlotsDialog] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  
+
   // New filter states
   const [selectedCampuses, setSelectedCampuses] = useState<string[]>([]);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -53,97 +53,130 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   const [selectedRatings, setSelectedRatings] = useState<number[]>([]);
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const tutors = mockTutors;
   const subjects = mockSubjects;
 
   // Filter options
   const campusOptions = [
-    { value: 'cs1', label: 'CS1 - Lý Thường Kiệt' },
-    { value: 'cs2', label: 'CS2 - Dĩ An' }
+    { value: "cs1", label: "CS1 - Lý Thường Kiệt" },
+    { value: "cs2", label: "CS2 - Dĩ An" },
   ];
 
-  const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const dayOptions = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+  ];
 
   const timeSlotOptions = [
-    { value: '07:00-09:00', label: '7:00 AM - 9:00 AM' },
-    { value: '09:00-11:00', label: '9:00 AM - 11:00 AM' },
-    { value: '11:00-13:00', label: '11:00 AM - 1:00 PM' },
-    { value: '13:00-15:00', label: '1:00 PM - 3:00 PM' },
-    { value: '15:00-17:00', label: '3:00 PM - 5:00 PM' },
-    { value: '17:00-19:00', label: '5:00 PM - 7:00 PM' },
-    { value: '19:00-21:00', label: '7:00 PM - 9:00 PM' }
+    { value: "07:00-09:00", label: "7:00 AM - 9:00 AM" },
+    { value: "09:00-11:00", label: "9:00 AM - 11:00 AM" },
+    { value: "11:00-13:00", label: "11:00 AM - 1:00 PM" },
+    { value: "13:00-15:00", label: "1:00 PM - 3:00 PM" },
+    { value: "15:00-17:00", label: "3:00 PM - 5:00 PM" },
+    { value: "17:00-19:00", label: "5:00 PM - 7:00 PM" },
+    { value: "19:00-21:00", label: "7:00 PM - 9:00 PM" },
   ];
 
   const methodOptions = [
-    { value: 'online', label: 'Online', icon: Video },
-    { value: 'offline', label: 'Offline', icon: MapPin }
+    { value: "online", label: "Online", icon: Video },
+    { value: "offline", label: "Offline", icon: MapPin },
   ];
 
   const ratingOptions = [5, 4, 3, 2, 1];
 
   // Helper function to check if time slot matches filter
   const isTimeInRange = (time: string, range: string) => {
-    const [rangeStart, rangeEnd] = range.split('-');
-    const timeNum = parseInt(time.replace(':', ''));
-    const startNum = parseInt(rangeStart.replace(':', ''));
-    const endNum = parseInt(rangeEnd.replace(':', ''));
+    const [rangeStart, rangeEnd] = range.split("-");
+    const timeNum = parseInt(time.replace(":", ""));
+    const startNum = parseInt(rangeStart.replace(":", ""));
+    const endNum = parseInt(rangeEnd.replace(":", ""));
     return timeNum >= startNum && timeNum < endNum;
   };
 
   // Get unique subjects that have tutors
-  const availableSubjects = Array.from(
-    new Set(tutors.flatMap(t => t.subjects))
-  ).map(subjectCode => subjects.find(s => s.code === subjectCode)).filter(Boolean);
+  const availableSubjects = Array.from(new Set(tutors.flatMap(t => t.subjects)))
+    .map(subjectCode => subjects.find(s => s.code === subjectCode))
+    .filter(Boolean);
 
   const filteredTutors = tutors.filter(tutor => {
     // Search filter
-    const matchesSearch = tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tutor.staffId.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tutor.staffId.toLowerCase().includes(searchTerm.toLowerCase());
+
     // Subject filter
-    const matchesSubject = selectedSubject === 'all' || tutor.subjects.includes(selectedSubject);
-    
+    const matchesSubject =
+      selectedSubject === "all" || tutor.subjects.includes(selectedSubject);
+
     // Campus filter (mock - assuming location contains campus info)
-    const matchesCampus = selectedCampuses.length === 0 || 
-      selectedCampuses.some(campus => 
-        tutor.availability.some(slot => 
-          slot.location?.toLowerCase().includes(campus === 'cs1' ? 'h1' : 'h2') ||
-          slot.location?.toLowerCase().includes(campus === 'cs1' ? 'ly thuong kiet' : 'di an')
+    const matchesCampus =
+      selectedCampuses.length === 0 ||
+      selectedCampuses.some(campus =>
+        tutor.availability.some(
+          slot =>
+            slot.location
+              ?.toLowerCase()
+              .includes(campus === "cs1" ? "h1" : "h2") ||
+            slot.location
+              ?.toLowerCase()
+              .includes(campus === "cs1" ? "ly thuong kiet" : "di an")
         )
       );
-    
+
     // Day filter
-    const matchesDay = selectedDays.length === 0 ||
-      selectedDays.some(day => 
+    const matchesDay =
+      selectedDays.length === 0 ||
+      selectedDays.some(day =>
         tutor.availability.some(slot => slot.day === day)
       );
-    
+
     // Time slot filter
-    const matchesTimeSlot = selectedTimeSlots.length === 0 ||
+    const matchesTimeSlot =
+      selectedTimeSlots.length === 0 ||
       selectedTimeSlots.some(timeRange =>
-        tutor.availability.some(slot => 
-          isTimeInRange(slot.startTime, timeRange) || isTimeInRange(slot.endTime, timeRange)
+        tutor.availability.some(
+          slot =>
+            isTimeInRange(slot.startTime, timeRange) ||
+            isTimeInRange(slot.endTime, timeRange)
         )
       );
-    
+
     // Method filter
-    const matchesMethod = selectedMethods.length === 0 ||
+    const matchesMethod =
+      selectedMethods.length === 0 ||
       selectedMethods.some(method =>
-        tutor.availability.some(slot => 
-          slot.mode === method || slot.mode === 'both'
+        tutor.availability.some(
+          slot => slot.mode === method || slot.mode === "both"
         )
       );
-    
+
     // Rating filter
-    const matchesRating = selectedRatings.length === 0 ||
-      (tutor.rating && selectedRatings.some(rating => tutor.rating! >= rating && tutor.rating! < rating + 1));
-    
-    return matchesSearch && matchesSubject && matchesCampus && matchesDay && matchesTimeSlot && matchesMethod && matchesRating;
+    const matchesRating =
+      selectedRatings.length === 0 ||
+      (tutor.rating &&
+        selectedRatings.some(
+          rating => tutor.rating! >= rating && tutor.rating! < rating + 1
+        ));
+
+    return (
+      matchesSearch &&
+      matchesSubject &&
+      matchesCampus &&
+      matchesDay &&
+      matchesTimeSlot &&
+      matchesMethod &&
+      matchesRating
+    );
   });
 
   // AI recommended tutors (mock - just sorts by rating when enabled)
-  const displayTutors = useAIRecommendations 
+  const displayTutors = useAIRecommendations
     ? [...filteredTutors].sort((a, b) => (b.rating || 0) - (a.rating || 0))
     : filteredTutors;
 
@@ -152,7 +185,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   };
 
   // Toggle filter functions
-  const toggleFilter = (value: string, selected: string[], setter: (val: string[]) => void) => {
+  const toggleFilter = (
+    value: string,
+    selected: string[],
+    setter: (val: string[]) => void
+  ) => {
     if (selected.includes(value)) {
       setter(selected.filter(v => v !== value));
     } else {
@@ -198,24 +235,25 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
     setSelectedTimeSlots([]);
     setSelectedMethods([]);
     setSelectedRatings([]);
-    setSelectedSubject('all');
-    setSearchTerm('');
+    setSelectedSubject("all");
+    setSearchTerm("");
   };
 
-  const activeFilterCount = 
-    selectedCampuses.length + 
-    selectedDays.length + 
-    selectedTimeSlots.length + 
-    selectedMethods.length + 
+  const activeFilterCount =
+    selectedCampuses.length +
+    selectedDays.length +
+    selectedTimeSlots.length +
+    selectedMethods.length +
     selectedRatings.length +
-    (selectedSubject !== 'all' ? 1 : 0);
-
+    (selectedSubject !== "all" ? 1 : 0);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-gray-900 mb-2">Available Tutors</h1>
-        <p className="text-gray-600">Find expert tutors to help you succeed in your studies</p>
+        <p className="text-gray-600">
+          Find expert tutors to help you succeed in your studies
+        </p>
       </div>
 
       {/* Search and AI Recommendations */}
@@ -228,7 +266,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <Input
                 placeholder="Search by name or staff ID..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -240,7 +278,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   type="checkbox"
                   id="ai-recommendations"
                   checked={useAIRecommendations}
-                  onChange={(e) => setUseAIRecommendations(e.target.checked)}
+                  onChange={e => setUseAIRecommendations(e.target.checked)}
                   className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5 border-gray-300 rounded cursor-pointer"
                 />
               </label>
@@ -250,7 +288,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               >
                 <Sparkles className="w-4 h-4 text-purple-600" />
                 <span className="text-purple-900">Use AI Recommendations</span>
-                <span className="text-purple-600 text-xs">(Sort by best match)</span>
+                <span className="text-purple-600 text-xs">
+                  (Sort by best match)
+                </span>
               </label>
             </div>
 
@@ -270,7 +310,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 )}
               </span>
               <span className="text-xs text-gray-500">
-                {showFilters ? 'Hide' : 'Show'}
+                {showFilters ? "Hide" : "Show"}
               </span>
             </Button>
           </div>
@@ -302,14 +342,16 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
           <CardContent className="space-y-6">
             {/* Subject Filter */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Subject</label>
+              <label className="text-sm font-medium text-gray-700">
+                Subject
+              </label>
               <select
                 value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
+                onChange={e => setSelectedSubject(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm"
               >
                 <option value="all">All Subjects</option>
-                {availableSubjects.map((subject) => (
+                {availableSubjects.map(subject => (
                   <option key={subject!.code} value={subject!.code}>
                     {subject!.code} - {subject!.name}
                   </option>
@@ -320,7 +362,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
             {/* Campus Filter */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Campus</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Campus
+                </label>
                 {selectedCampuses.length > 0 && (
                   <Button
                     onClick={() => setSelectedCampuses([])}
@@ -335,22 +379,44 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <div className="flex flex-wrap gap-2">
                 <Button
                   onClick={toggleAllCampuses}
-                  variant={selectedCampuses.length === campusOptions.length ? "default" : "outline"}
+                  variant={
+                    selectedCampuses.length === campusOptions.length
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
-                  className={selectedCampuses.length === campusOptions.length ? "bg-purple-600 hover:bg-purple-700" : ""}
+                  className={
+                    selectedCampuses.length === campusOptions.length
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : ""
+                  }
                 >
                   {selectedCampuses.length === campusOptions.length && (
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                   )}
                   All Campuses
                 </Button>
-                {campusOptions.map((campus) => (
+                {campusOptions.map(campus => (
                   <Button
                     key={campus.value}
-                    onClick={() => toggleFilter(campus.value, selectedCampuses, setSelectedCampuses)}
-                    variant={selectedCampuses.includes(campus.value) ? "default" : "outline"}
+                    onClick={() =>
+                      toggleFilter(
+                        campus.value,
+                        selectedCampuses,
+                        setSelectedCampuses
+                      )
+                    }
+                    variant={
+                      selectedCampuses.includes(campus.value)
+                        ? "default"
+                        : "outline"
+                    }
                     size="sm"
-                    className={selectedCampuses.includes(campus.value) ? "bg-blue-600" : ""}
+                    className={
+                      selectedCampuses.includes(campus.value)
+                        ? "bg-blue-600"
+                        : ""
+                    }
                   >
                     {selectedCampuses.includes(campus.value) && (
                       <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -364,7 +430,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
             {/* Learning Time Filter */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Learning Day</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Learning Day
+                </label>
                 {selectedDays.length > 0 && (
                   <Button
                     onClick={() => setSelectedDays([])}
@@ -379,19 +447,29 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <div className="flex flex-wrap gap-2">
                 <Button
                   onClick={toggleAllDays}
-                  variant={selectedDays.length === dayOptions.length ? "default" : "outline"}
+                  variant={
+                    selectedDays.length === dayOptions.length
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
-                  className={selectedDays.length === dayOptions.length ? "bg-purple-600 hover:bg-purple-700" : ""}
+                  className={
+                    selectedDays.length === dayOptions.length
+                      ? "bg-purple-600 hover:bg-purple-700"
+                      : ""
+                  }
                 >
                   {selectedDays.length === dayOptions.length && (
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                   )}
                   All Days
                 </Button>
-                {dayOptions.map((day) => (
+                {dayOptions.map(day => (
                   <Button
                     key={day}
-                    onClick={() => toggleFilter(day, selectedDays, setSelectedDays)}
+                    onClick={() =>
+                      toggleFilter(day, selectedDays, setSelectedDays)
+                    }
                     variant={selectedDays.includes(day) ? "default" : "outline"}
                     size="sm"
                     className={selectedDays.includes(day) ? "bg-blue-600" : ""}
@@ -403,11 +481,13 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   </Button>
                 ))}
               </div>
-              
+
               {selectedDays.length > 0 && (
                 <div className="space-y-2 pl-4 border-l-2 border-blue-200">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-gray-600">Time Slots</label>
+                    <label className="text-sm font-medium text-gray-600">
+                      Time Slots
+                    </label>
                     {selectedTimeSlots.length > 0 && (
                       <Button
                         onClick={() => setSelectedTimeSlots([])}
@@ -420,13 +500,27 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {timeSlotOptions.map((slot) => (
+                    {timeSlotOptions.map(slot => (
                       <Button
                         key={slot.value}
-                        onClick={() => toggleFilter(slot.value, selectedTimeSlots, setSelectedTimeSlots)}
-                        variant={selectedTimeSlots.includes(slot.value) ? "default" : "outline"}
+                        onClick={() =>
+                          toggleFilter(
+                            slot.value,
+                            selectedTimeSlots,
+                            setSelectedTimeSlots
+                          )
+                        }
+                        variant={
+                          selectedTimeSlots.includes(slot.value)
+                            ? "default"
+                            : "outline"
+                        }
                         size="sm"
-                        className={selectedTimeSlots.includes(slot.value) ? "bg-blue-600" : ""}
+                        className={
+                          selectedTimeSlots.includes(slot.value)
+                            ? "bg-blue-600"
+                            : ""
+                        }
                       >
                         {selectedTimeSlots.includes(slot.value) && (
                           <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -442,7 +536,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
             {/* Method Filter */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Teaching Method</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Teaching Method
+                </label>
                 {selectedMethods.length > 0 && (
                   <Button
                     onClick={() => setSelectedMethods([])}
@@ -457,22 +553,44 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <div className="flex flex-wrap gap-2">
                 <Button
                   onClick={toggleAllMethods}
-                  variant={selectedMethods.length === methodOptions.length ? "default" : "outline"}
+                  variant={
+                    selectedMethods.length === methodOptions.length
+                      ? "default"
+                      : "outline"
+                  }
                   size="sm"
-                  className={selectedMethods.length === methodOptions.length ? "bg-purple-600 hover:bg-purple-700 text-white" : "hover:bg-gray-100"}
+                  className={
+                    selectedMethods.length === methodOptions.length
+                      ? "bg-purple-600 hover:bg-purple-700 text-white"
+                      : "hover:bg-gray-100"
+                  }
                 >
                   {selectedMethods.length === methodOptions.length && (
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                   )}
                   All Methods
                 </Button>
-                {methodOptions.map((method) => (
+                {methodOptions.map(method => (
                   <Button
                     key={method.value}
-                    onClick={() => toggleFilter(method.value, selectedMethods, setSelectedMethods)}
-                    variant={selectedMethods.includes(method.value) ? "default" : "outline"}
+                    onClick={() =>
+                      toggleFilter(
+                        method.value,
+                        selectedMethods,
+                        setSelectedMethods
+                      )
+                    }
+                    variant={
+                      selectedMethods.includes(method.value)
+                        ? "default"
+                        : "outline"
+                    }
                     size="sm"
-                    className={selectedMethods.includes(method.value) ? "bg-blue-600 hover:bg-blue-700 text-white" : "hover:bg-gray-100"}
+                    className={
+                      selectedMethods.includes(method.value)
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "hover:bg-gray-100"
+                    }
                   >
                     {selectedMethods.includes(method.value) ? (
                       <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -488,7 +606,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
             {/* Rating Filter */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700">Minimum Rating</label>
+                <label className="text-sm font-medium text-gray-700">
+                  Minimum Rating
+                </label>
                 {selectedRatings.length > 0 && (
                   <Button
                     onClick={() => setSelectedRatings([])}
@@ -501,13 +621,17 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 )}
               </div>
               <div className="flex flex-wrap gap-2">
-                {ratingOptions.map((rating) => (
+                {ratingOptions.map(rating => (
                   <Button
                     key={rating}
                     onClick={() => toggleRatingFilter(rating)}
-                    variant={selectedRatings.includes(rating) ? "default" : "outline"}
+                    variant={
+                      selectedRatings.includes(rating) ? "default" : "outline"
+                    }
                     size="sm"
-                    className={selectedRatings.includes(rating) ? "bg-blue-500" : ""}
+                    className={
+                      selectedRatings.includes(rating) ? "bg-blue-500" : ""
+                    }
                   >
                     {selectedRatings.includes(rating) && (
                       <CheckCircle2 className="w-3 h-3 mr-1" />
@@ -528,13 +652,23 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {selectedCampuses.map((campus) => (
-                    <Badge key={campus} variant="secondary" className="gap-1 pr-1">
-                      <span>{campusOptions.find(c => c.value === campus)?.label}</span>
+                  {selectedCampuses.map(campus => (
+                    <Badge
+                      key={campus}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
+                      <span>
+                        {campusOptions.find(c => c.value === campus)?.label}
+                      </span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
-                          toggleFilter(campus, selectedCampuses, setSelectedCampuses);
+                          toggleFilter(
+                            campus,
+                            selectedCampuses,
+                            setSelectedCampuses
+                          );
                         }}
                         className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
                       >
@@ -542,11 +676,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </button>
                     </Badge>
                   ))}
-                  {selectedDays.map((day) => (
+                  {selectedDays.map(day => (
                     <Badge key={day} variant="secondary" className="gap-1 pr-1">
                       <span>{day}</span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           toggleFilter(day, selectedDays, setSelectedDays);
                         }}
@@ -556,13 +690,23 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </button>
                     </Badge>
                   ))}
-                  {selectedTimeSlots.map((slot) => (
-                    <Badge key={slot} variant="secondary" className="gap-1 pr-1">
-                      <span>{timeSlotOptions.find(s => s.value === slot)?.label}</span>
+                  {selectedTimeSlots.map(slot => (
+                    <Badge
+                      key={slot}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
+                      <span>
+                        {timeSlotOptions.find(s => s.value === slot)?.label}
+                      </span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
-                          toggleFilter(slot, selectedTimeSlots, setSelectedTimeSlots);
+                          toggleFilter(
+                            slot,
+                            selectedTimeSlots,
+                            setSelectedTimeSlots
+                          );
                         }}
                         className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
                       >
@@ -570,13 +714,23 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </button>
                     </Badge>
                   ))}
-                  {selectedMethods.map((method) => (
-                    <Badge key={method} variant="secondary" className="gap-1 pr-1">
-                      <span>{methodOptions.find(m => m.value === method)?.label}</span>
+                  {selectedMethods.map(method => (
+                    <Badge
+                      key={method}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
+                      <span>
+                        {methodOptions.find(m => m.value === method)?.label}
+                      </span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
-                          toggleFilter(method, selectedMethods, setSelectedMethods);
+                          toggleFilter(
+                            method,
+                            selectedMethods,
+                            setSelectedMethods
+                          );
                         }}
                         className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
                       >
@@ -584,11 +738,15 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </button>
                     </Badge>
                   ))}
-                  {selectedRatings.map((rating) => (
-                    <Badge key={rating} variant="secondary" className="gap-1 pr-1">
+                  {selectedRatings.map(rating => (
+                    <Badge
+                      key={rating}
+                      variant="secondary"
+                      className="gap-1 pr-1"
+                    >
                       <span>{rating}+ Stars</span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           toggleRatingFilter(rating);
                         }}
@@ -598,13 +756,13 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </button>
                     </Badge>
                   ))}
-                  {selectedSubject !== 'all' && (
+                  {selectedSubject !== "all" && (
                     <Badge variant="secondary" className="gap-1 pr-1">
                       <span>{selectedSubject}</span>
                       <button
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
-                          setSelectedSubject('all');
+                          setSelectedSubject("all");
                         }}
                         className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
                       >
@@ -622,7 +780,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          Found <span className="font-semibold text-gray-900">{displayTutors.length}</span> tutor{displayTutors.length !== 1 ? 's' : ''}
+          Found{" "}
+          <span className="font-semibold text-gray-900">
+            {displayTutors.length}
+          </span>{" "}
+          tutor{displayTutors.length !== 1 ? "s" : ""}
           {useAIRecommendations && (
             <span className="ml-2 text-purple-600 font-medium">
               (AI Recommended)
@@ -633,7 +795,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
 
       {/* Tutors Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {displayTutors.map((tutor) => (
+        {displayTutors.map(tutor => (
           <Card key={tutor.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <div className="flex items-start gap-4">
@@ -666,10 +828,16 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
             <CardContent className="space-y-4">
               {/* Subjects */}
               <div>
-                <h4 className="text-sm text-gray-600 mb-2">Tutoring Subjects</h4>
+                <h4 className="text-sm text-gray-600 mb-2">
+                  Tutoring Subjects
+                </h4>
                 <div className="flex flex-wrap gap-2">
-                  {tutor.subjects.map((subjectCode) => (
-                    <Badge key={subjectCode} variant="outline" className="text-xs">
+                  {tutor.subjects.map(subjectCode => (
+                    <Badge
+                      key={subjectCode}
+                      variant="outline"
+                      className="text-xs"
+                    >
                       {getSubjectName(subjectCode)}
                     </Badge>
                   ))}
@@ -683,8 +851,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   Available Time Slots
                 </h4>
                 <div className="space-y-1">
-                  {tutor.availability.map((slot) => (
-                    <div key={slot.id} className="text-sm bg-blue-50 p-2 rounded">
+                  {tutor.availability.map(slot => (
+                    <div
+                      key={slot.id}
+                      className="text-sm bg-blue-50 p-2 rounded"
+                    >
                       <span className="text-blue-900">{slot.day}</span>
                       <span className="text-blue-700 ml-2">
                         {slot.startTime} - {slot.endTime}
@@ -716,9 +887,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <div className="pt-4 border-t">
                 {tutor.isAcceptingStudents ? (
                   <div className="space-y-2">
-                    <p className="text-sm text-gray-600">Select subject to book session:</p>
+                    <p className="text-sm text-gray-600">
+                      Select subject to book session:
+                    </p>
                     <div className="flex flex-wrap gap-2">
-                      {tutor.subjects.map((subjectCode) => (
+                      {tutor.subjects.map(subjectCode => (
                         <Button
                           key={subjectCode}
                           size="sm"
@@ -751,7 +924,9 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
           <CardContent className="p-12 text-center">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-gray-600 mb-2">No tutors found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+            <p className="text-gray-500">
+              Try adjusting your search or filter criteria
+            </p>
             {activeFilterCount > 0 && (
               <Button
                 onClick={clearAllFilters}
@@ -771,46 +946,52 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
           <DialogHeader>
             <DialogTitle>Available Time Slots</DialogTitle>
             <DialogDescription>
-              Select a preferred time slot for {selectedTutor?.name} - {getSubjectName(selectedTutorSubject)}
+              Select a preferred time slot for {selectedTutor?.name} -{" "}
+              {getSubjectName(selectedTutorSubject)}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {selectedTutor?.availability.map((slot) => (
+            {selectedTutor?.availability.map(slot => (
               <div
                 key={slot.id}
                 onClick={() => setSelectedSlot(slot)}
                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                   selectedSlot?.id === slot.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300'
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-blue-300"
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
-                      <span className="font-medium text-gray-900">{slot.day}</span>
+                      <span className="font-medium text-gray-900">
+                        {slot.day}
+                      </span>
                       <Badge variant="outline" className="ml-2">
                         {slot.startTime} - {slot.endTime}
                       </Badge>
                       {slot.requiresApproval && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                        <Badge
+                          variant="outline"
+                          className="bg-yellow-50 text-yellow-700 border-yellow-300"
+                        >
                           <CheckCircle2 className="w-3 h-3 mr-1" />
                           Approval Required
                         </Badge>
                       )}
                     </div>
-                    
+
                     {slot.mode && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
-                        {slot.mode === 'online' || slot.mode === 'both' ? (
+                        {slot.mode === "online" || slot.mode === "both" ? (
                           <div className="flex items-center gap-1">
                             <Video className="w-4 h-4" />
                             <span>Online</span>
                           </div>
                         ) : null}
-                        {slot.mode === 'offline' || slot.mode === 'both' ? (
+                        {slot.mode === "offline" || slot.mode === "both" ? (
                           <div className="flex items-center gap-1">
                             <MapPin className="w-4 h-4" />
                             <span>Offline</span>
@@ -818,28 +999,28 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                         ) : null}
                       </div>
                     )}
-                    
+
                     {slot.location && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
                         <span>{slot.location}</span>
                       </div>
                     )}
-                    
+
                     {slot.zoomLink && (
                       <div className="flex items-center gap-2 text-sm text-blue-600">
                         <Video className="w-4 h-4" />
                         <span className="truncate">Zoom link available</span>
                       </div>
                     )}
-                    
+
                     {slot.capacity && (
                       <div className="text-sm text-gray-500">
                         Capacity: {slot.capacity} students
                       </div>
                     )}
                   </div>
-                  
+
                   {selectedSlot?.id === slot.id && (
                     <CheckCircle2 className="w-6 h-6 text-blue-600 flex-shrink-0" />
                   )}
@@ -865,7 +1046,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   setShowSlotsDialog(false);
                   setShowConfirmDialog(true);
                 } else {
-                  toast.error('Please select a time slot');
+                  toast.error("Please select a time slot");
                 }
               }}
               disabled={!selectedSlot}
@@ -886,27 +1067,34 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               Please review your session details before confirming
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <h4 className="font-medium text-gray-900">Tutor</h4>
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={selectedTutor?.avatar} alt={selectedTutor?.name} />
+                  <AvatarImage
+                    src={selectedTutor?.avatar}
+                    alt={selectedTutor?.name}
+                  />
                   <AvatarFallback>
                     <User className="w-5 h-5" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium">{selectedTutor?.name}</p>
-                  <p className="text-sm text-gray-600">{selectedTutor?.staffId}</p>
+                  <p className="text-sm text-gray-600">
+                    {selectedTutor?.staffId}
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="space-y-2">
               <h4 className="font-medium text-gray-900">Subject</h4>
-              <p className="text-gray-700">{getSubjectName(selectedTutorSubject)}</p>
+              <p className="text-gray-700">
+                {getSubjectName(selectedTutorSubject)}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -919,16 +1107,18 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                     {selectedSlot?.startTime} - {selectedSlot?.endTime}
                   </span>
                 </div>
-                
+
                 {selectedSlot?.mode && (
                   <div className="flex items-center gap-2 text-sm">
-                    {selectedSlot.mode === 'online' || selectedSlot.mode === 'both' ? (
+                    {selectedSlot.mode === "online" ||
+                    selectedSlot.mode === "both" ? (
                       <Badge variant="outline" className="bg-white">
                         <Video className="w-3 h-3 mr-1" />
                         Online
                       </Badge>
                     ) : null}
-                    {selectedSlot.mode === 'offline' || selectedSlot.mode === 'both' ? (
+                    {selectedSlot.mode === "offline" ||
+                    selectedSlot.mode === "both" ? (
                       <Badge variant="outline" className="bg-white">
                         <MapPin className="w-3 h-3 mr-1" />
                         Offline
@@ -936,7 +1126,7 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                     ) : null}
                   </div>
                 )}
-                
+
                 {selectedSlot?.location && (
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <MapPin className="w-4 h-4" />
@@ -952,9 +1142,14 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-yellow-900 mb-1">Approval Required</h4>
+                    <h4 className="font-medium text-yellow-900 mb-1">
+                      Approval Required
+                    </h4>
                     <p className="text-sm text-yellow-800">
-                      This time slot requires tutor approval. Your booking request will be sent to the tutor for review. You'll receive a notification once the tutor approves or declines your request.
+                      This time slot requires tutor approval. Your booking
+                      request will be sent to the tutor for review. You'll
+                      receive a notification once the tutor approves or declines
+                      your request.
                     </p>
                   </div>
                 </div>
@@ -978,34 +1173,42 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               onClick={() => {
                 if (selectedTutor && selectedSlot && selectedTutorSubject) {
                   // Call the booking handler
-                  onBookSession(selectedTutor.id, selectedTutorSubject, selectedSlot.id);
-                  
+                  onBookSession(
+                    selectedTutor.id,
+                    selectedTutorSubject,
+                    selectedSlot.id
+                  );
+
                   // Show success notification based on approval requirement
                   if (selectedSlot.requiresApproval) {
-                    toast.success('Booking Request Sent!', {
-                      description: `Your request has been sent to ${selectedTutor.name}. You'll receive a notification once the tutor reviews your request.`
+                    toast.success("Booking Request Sent!", {
+                      description: `Your request has been sent to ${selectedTutor.name}. You'll receive a notification once the tutor reviews your request.`,
                     });
                   } else {
-                    toast.success('Session Booked Successfully!', {
-                      description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`
+                    toast.success("Session Booked Successfully!", {
+                      description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`,
                     });
                   }
-                  
+
                   // Reset state
                   setShowConfirmDialog(false);
                   setSelectedTutor(null);
-                  setSelectedTutorSubject('');
+                  setSelectedTutorSubject("");
                   setSelectedSlot(null);
                 }
               }}
               className={`flex-1 border-2 ${
-                selectedSlot?.requiresApproval 
-                  ? 'bg-yellow-600 hover:bg-yellow-700 border-yellow-700 text-yellow-50' 
-                  : 'bg-green-600 hover:bg-green-700 border-green-700 text-green-50'
+                selectedSlot?.requiresApproval
+                  ? "bg-yellow-600 hover:bg-yellow-700 border-yellow-700 text-yellow-50"
+                  : "bg-green-600 hover:bg-green-700 border-green-700 text-green-50"
               }`}
             >
               <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>{selectedSlot?.requiresApproval ? 'Send Approval Request' : 'Confirm Booking'}</span>
+              <span>
+                {selectedSlot?.requiresApproval
+                  ? "Send Approval Request"
+                  : "Confirm Booking"}
+              </span>
             </Button>
           </DialogFooter>
         </DialogContent>

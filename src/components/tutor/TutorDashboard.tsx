@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Switch } from '../ui/switch';
-import { Label } from '../ui/label';
-import { 
-  Users, 
-  Calendar, 
-  TrendingUp, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
+import {
+  Users,
+  Calendar,
+  TrendingUp,
   Clock,
   CheckCircle2,
   MessageSquare,
   Award,
-  BookOpen
-} from 'lucide-react';
-import { mockTutoringSessions } from '../../data/mockData';
-import { toast } from 'sonner';
+  BookOpen,
+} from "lucide-react";
+import { mockTutoringSessions } from "../../data/mockData";
+import { toast } from "sonner";
 
 interface TutorDashboardProps {
   onNavigate: (page: string) => void;
@@ -25,17 +25,22 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
   const [maxStudents, setMaxStudents] = useState(5);
 
   const sessions = mockTutoringSessions;
-  const activeStudents = sessions.filter(s => s.status === 'active').length;
+  const activeStudents = sessions.filter(s => s.status === "active").length;
   const totalMeetings = sessions.reduce((acc, s) => acc + s.meetings.length, 0);
-  const attendanceRate = sessions.reduce((acc, s) => {
-    const attended = s.meetings.filter(m => m.attended).length;
-    return acc + (attended / s.meetings.length || 0);
-  }, 0) / sessions.length * 100 || 0;
+  const attendanceRate =
+    (sessions.reduce((acc, s) => {
+      const attended = s.meetings.filter(m => m.attended).length;
+      return acc + (attended / s.meetings.length || 0);
+    }, 0) /
+      sessions.length) *
+      100 || 0;
 
   const handleToggleAccepting = (checked: boolean) => {
     setIsAcceptingStudents(checked);
     toast.success(
-      checked ? 'Now accepting new students' : 'No longer accepting new students'
+      checked
+        ? "Now accepting new students"
+        : "No longer accepting new students"
     );
   };
 
@@ -43,7 +48,9 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div>
         <h1 className="text-gray-900 mb-2">Tutor Dashboard</h1>
-        <p className="text-gray-600">Manage your tutoring activities and students</p>
+        <p className="text-gray-600">
+          Manage your tutoring activities and students
+        </p>
       </div>
 
       {/* Settings Card */}
@@ -57,7 +64,8 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
                   Accept Tutoring Requests
                 </Label>
                 <p className="text-sm text-gray-600 mt-1">
-                  Toggle to {isAcceptingStudents ? 'stop' : 'start'} receiving new student requests this semester
+                  Toggle to {isAcceptingStudents ? "stop" : "start"} receiving
+                  new student requests this semester
                 </p>
               </div>
               <Switch
@@ -77,7 +85,7 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
                 min="1"
                 max="10"
                 value={maxStudents}
-                onChange={(e) => setMaxStudents(Number(e.target.value))}
+                onChange={e => setMaxStudents(Number(e.target.value))}
                 className="w-full"
                 disabled={!isAcceptingStudents}
               />
@@ -98,7 +106,9 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
               <div>
                 <p className="text-blue-100 text-sm mb-1">Active Students</p>
                 <p className="text-3xl">{activeStudents}</p>
-                <p className="text-blue-100 text-xs mt-1">of {maxStudents} max</p>
+                <p className="text-blue-100 text-xs mt-1">
+                  of {maxStudents} max
+                </p>
               </div>
               <Users className="w-8 h-8 text-blue-200" />
             </div>
@@ -152,12 +162,14 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {sessions.map((session) => (
+            {sessions.map(session => (
               <div key={session.id} className="p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-gray-900">{session.studentName}</h4>
-                    <p className="text-sm text-gray-600">{session.subjectName}</p>
+                    <p className="text-sm text-gray-600">
+                      {session.subjectName}
+                    </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-600">
@@ -181,23 +193,36 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('schedule')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("schedule")}
+        >
           <CardContent className="p-6 text-center">
             <Calendar className="w-12 h-12 text-blue-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">Manage Schedule</h3>
-            <p className="text-sm text-gray-600">Set your available time slots</p>
+            <p className="text-sm text-gray-600">
+              Set your available time slots
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('students')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("students")}
+        >
           <CardContent className="p-6 text-center">
             <Users className="w-12 h-12 text-green-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">My Students</h3>
-            <p className="text-sm text-gray-600">View and manage your students</p>
+            <p className="text-sm text-gray-600">
+              View and manage your students
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => onNavigate('messages')}>
+        <Card
+          className="hover:shadow-lg transition-shadow cursor-pointer"
+          onClick={() => onNavigate("messages")}
+        >
           <CardContent className="p-6 text-center">
             <MessageSquare className="w-12 h-12 text-purple-600 mx-auto mb-3" />
             <h3 className="text-gray-900 mb-2">Messages</h3>

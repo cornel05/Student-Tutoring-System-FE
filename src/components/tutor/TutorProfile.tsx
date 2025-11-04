@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Badge } from '../ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Textarea } from '../ui/textarea';
-import { 
-  User, 
-  Mail, 
-  Phone, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Badge } from "../ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Textarea } from "../ui/textarea";
+import {
+  User,
+  Mail,
+  Phone,
   BookOpen,
   IdCard,
   Edit,
@@ -18,11 +18,11 @@ import {
   Upload,
   FileText,
   X,
-  Plus
-} from 'lucide-react';
-import { mockTutorUser } from '../../data/mockData';
-import { toast } from 'sonner';
-import { TutorCredential } from '../../types';
+  Plus,
+} from "lucide-react";
+import { mockTutorUser } from "../../data/mockData";
+import { toast } from "sonner";
+import { TutorCredential } from "../../types";
 import {
   Dialog,
   DialogContent,
@@ -30,79 +30,105 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
+} from "../ui/dialog";
 
 export function TutorProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState(mockTutorUser);
-  const [subjects, setSubjects] = useState(['MT2013', 'MT1003', 'MT1005', 'PH1003']);
-  const [bio, setBio] = useState('Experienced mathematics tutor with 10+ years of teaching experience. Specializing in calculus, linear algebra, and statistics.');
+  const [subjects, setSubjects] = useState([
+    "MT2013",
+    "MT1003",
+    "MT1005",
+    "PH1003",
+  ]);
+  const [bio, setBio] = useState(
+    "Experienced mathematics tutor with 10+ years of teaching experience. Specializing in calculus, linear algebra, and statistics."
+  );
   const [credentials, setCredentials] = useState<TutorCredential[]>([
-    { id: 'c1', name: 'PhD Certificate - Mathematics', fileUrl: '#', uploadDate: '2023-01-15' },
-    { id: 'c2', name: 'Teaching License', fileUrl: '#', uploadDate: '2023-02-20' }
+    {
+      id: "c1",
+      name: "PhD Certificate - Mathematics",
+      fileUrl: "#",
+      uploadDate: "2023-01-15",
+    },
+    {
+      id: "c2",
+      name: "Teaching License",
+      fileUrl: "#",
+      uploadDate: "2023-02-20",
+    },
   ]);
   const [showAddCredential, setShowAddCredential] = useState(false);
   const [showAddSubject, setShowAddSubject] = useState(false);
-  const [newCredentialName, setNewCredentialName] = useState('');
-  const [newSubject, setNewSubject] = useState('');
+  const [newCredentialName, setNewCredentialName] = useState("");
+  const [newSubject, setNewSubject] = useState("");
 
-  const availableSubjects = ['MT1003', 'MT1005', 'MT2013', 'PH1003', 'PH1007', 'CH1003', 'CO1007', 'CO2003'];
+  const availableSubjects = [
+    "MT1003",
+    "MT1005",
+    "MT2013",
+    "PH1003",
+    "PH1007",
+    "CH1003",
+    "CO1007",
+    "CO2003",
+  ];
 
   const handleSave = () => {
-    toast.success('Profile updated successfully', {
-      description: 'Your changes have been saved'
+    toast.success("Profile updated successfully", {
+      description: "Your changes have been saved",
     });
     setIsEditing(false);
   };
 
   const handleUploadCredential = () => {
     if (!newCredentialName.trim()) {
-      toast.error('Please enter a credential name');
+      toast.error("Please enter a credential name");
       return;
     }
-    
+
     const newCredential: TutorCredential = {
       id: `c${credentials.length + 1}`,
       name: newCredentialName,
-      fileUrl: '#',
-      uploadDate: new Date().toISOString().split('T')[0]
+      fileUrl: "#",
+      uploadDate: new Date().toISOString().split("T")[0],
     };
-    
+
     setCredentials([...credentials, newCredential]);
-    toast.success('Credential uploaded successfully');
+    toast.success("Credential uploaded successfully");
     setShowAddCredential(false);
-    setNewCredentialName('');
+    setNewCredentialName("");
   };
 
   const handleRemoveCredential = (id: string) => {
     setCredentials(credentials.filter(c => c.id !== id));
-    toast.success('Credential removed');
+    toast.success("Credential removed");
   };
 
   const handleAddSubject = () => {
     if (!newSubject) {
-      toast.error('Please select a subject');
+      toast.error("Please select a subject");
       return;
     }
-    
+
     if (subjects.includes(newSubject)) {
-      toast.error('Subject already added');
+      toast.error("Subject already added");
       return;
     }
-    
+
     setSubjects([...subjects, newSubject]);
-    toast.success('Subject added successfully');
+    toast.success("Subject added successfully");
     setShowAddSubject(false);
-    setNewSubject('');
+    setNewSubject("");
   };
 
   const handleRemoveSubject = (subject: string) => {
     if (subjects.length === 1) {
-      toast.error('You must have at least one subject');
+      toast.error("You must have at least one subject");
       return;
     }
     setSubjects(subjects.filter(s => s !== subject));
-    toast.success('Subject removed');
+    toast.success("Subject removed");
   };
 
   return (
@@ -149,7 +175,7 @@ export function TutorProfile() {
               </Label>
               <Input
                 value={profile.name}
-                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                onChange={e => setProfile({ ...profile, name: e.target.value })}
                 disabled={!isEditing}
               />
             </div>
@@ -159,11 +185,7 @@ export function TutorProfile() {
                 <IdCard className="w-4 h-4" />
                 Staff ID
               </Label>
-              <Input
-                value={profile.staffId}
-                disabled
-                className="bg-gray-50"
-              />
+              <Input value={profile.staffId} disabled className="bg-gray-50" />
             </div>
 
             <div>
@@ -171,11 +193,7 @@ export function TutorProfile() {
                 <Mail className="w-4 h-4" />
                 Email
               </Label>
-              <Input
-                value={profile.email}
-                disabled
-                className="bg-gray-50"
-              />
+              <Input value={profile.email} disabled className="bg-gray-50" />
             </div>
 
             <div>
@@ -185,7 +203,9 @@ export function TutorProfile() {
               </Label>
               <Input
                 value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                onChange={e =>
+                  setProfile({ ...profile, phone: e.target.value })
+                }
                 disabled={!isEditing}
               />
             </div>
@@ -193,7 +213,10 @@ export function TutorProfile() {
 
           {isEditing && (
             <div className="flex gap-3 pt-4 border-t">
-              <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                onClick={handleSave}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </Button>
@@ -218,19 +241,19 @@ export function TutorProfile() {
             <Label>Professional Bio</Label>
             <Textarea
               value={bio}
-              onChange={(e) => setBio(e.target.value)}
+              onChange={e => setBio(e.target.value)}
               disabled={!isEditing}
               placeholder="Describe your teaching experience and expertise..."
               className="mt-2 min-h-24"
             />
           </div>
-          
+
           <div>
             <div className="flex items-center justify-between mb-3">
               <Label>Teaching Subjects</Label>
               {isEditing && (
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="outline"
                   onClick={() => setShowAddSubject(true)}
                 >
@@ -240,10 +263,10 @@ export function TutorProfile() {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              {subjects.map((subject) => (
-                <Badge 
-                  key={subject} 
-                  variant="outline" 
+              {subjects.map(subject => (
+                <Badge
+                  key={subject}
+                  variant="outline"
                   className="text-sm px-3 py-1.5 flex items-center gap-2"
                 >
                   {subject}
@@ -271,7 +294,7 @@ export function TutorProfile() {
               Credentials & Certifications
             </CardTitle>
             {isEditing && (
-              <Button 
+              <Button
                 size="sm"
                 onClick={() => setShowAddCredential(true)}
                 className="bg-blue-600 hover:bg-blue-700"
@@ -285,8 +308,8 @@ export function TutorProfile() {
         <CardContent>
           {credentials.length > 0 ? (
             <div className="space-y-3">
-              {credentials.map((credential) => (
-                <div 
+              {credentials.map(credential => (
+                <div
                   key={credential.id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border"
                 >
@@ -296,7 +319,9 @@ export function TutorProfile() {
                     </div>
                     <div>
                       <p className="text-gray-900">{credential.name}</p>
-                      <p className="text-sm text-gray-500">Uploaded: {credential.uploadDate}</p>
+                      <p className="text-sm text-gray-500">
+                        Uploaded: {credential.uploadDate}
+                      </p>
                     </div>
                   </div>
                   {isEditing && (
@@ -372,7 +397,7 @@ export function TutorProfile() {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Add Credential Dialog */}
       <Dialog open={showAddCredential} onOpenChange={setShowAddCredential}>
         <DialogContent>
@@ -382,33 +407,43 @@ export function TutorProfile() {
               Add a new credential or certification to your profile
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label>Credential Name</Label>
               <Input
                 value={newCredentialName}
-                onChange={(e) => setNewCredentialName(e.target.value)}
+                onChange={e => setNewCredentialName(e.target.value)}
                 placeholder="e.g., PhD Certificate, Teaching License"
                 className="mt-2"
               />
             </div>
-            
+
             <div>
               <Label>Upload File</Label>
               <div className="mt-2 border-2 border-dashed rounded-lg p-6 text-center">
                 <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">Click to upload or drag and drop</p>
-                <p className="text-xs text-gray-500 mt-1">PDF, JPG, PNG up to 10MB</p>
+                <p className="text-sm text-gray-600">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  PDF, JPG, PNG up to 10MB
+                </p>
               </div>
             </div>
           </div>
-          
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddCredential(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddCredential(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleUploadCredential} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleUploadCredential}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Upload
             </Button>
           </DialogFooter>
@@ -424,31 +459,35 @@ export function TutorProfile() {
               Select a subject you want to teach
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <Label>Subject Code</Label>
               <select
                 value={newSubject}
-                onChange={(e) => setNewSubject(e.target.value)}
+                onChange={e => setNewSubject(e.target.value)}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm mt-2"
               >
                 <option value="">Select a subject</option>
                 {availableSubjects
                   .filter(s => !subjects.includes(s))
                   .map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
-                  ))
-                }
+                    <option key={subject} value={subject}>
+                      {subject}
+                    </option>
+                  ))}
               </select>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAddSubject(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddSubject} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleAddSubject}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Add Subject
             </Button>
           </DialogFooter>

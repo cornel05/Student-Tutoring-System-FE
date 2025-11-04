@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
-import { 
-  Clock, 
-  Plus, 
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import {
+  Clock,
+  Plus,
   Trash2,
   Calendar,
   MapPin,
@@ -13,8 +13,8 @@ import {
   Users,
   Send,
   AlertCircle,
-  CheckCircle2
-} from 'lucide-react';
+  CheckCircle2,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -22,105 +22,132 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '../ui/dialog';
-import { Label } from '../ui/label';
-import { TimeSlot, BlackoutDate } from '../../types';
-import { toast } from 'sonner';
+} from "../ui/dialog";
+import { Label } from "../ui/label";
+import { TimeSlot, BlackoutDate } from "../../types";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
+} from "../ui/select";
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
 const TIME_SLOTS = [
-  '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
-  '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'
+  "07:00",
+  "08:00",
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
 ];
 
 export function TutorSchedule() {
   const [availability, setAvailability] = useState<TimeSlot[]>([
-    { 
-      id: 'a1', 
-      day: 'Monday', 
-      startTime: '14:00', 
-      endTime: '16:00',
-      mode: 'both',
-      location: 'Room A5-101',
-      zoomLink: 'https://zoom.us/j/123456789',
+    {
+      id: "a1",
+      day: "Monday",
+      startTime: "14:00",
+      endTime: "16:00",
+      mode: "both",
+      location: "Room A5-101",
+      zoomLink: "https://zoom.us/j/123456789",
       capacity: 5,
       isPublished: true,
-      requiresApproval: false
+      requiresApproval: false,
     },
-    { 
-      id: 'a2', 
-      day: 'Wednesday', 
-      startTime: '14:00', 
-      endTime: '16:00',
-      mode: 'online',
-      zoomLink: 'https://zoom.us/j/987654321',
+    {
+      id: "a2",
+      day: "Wednesday",
+      startTime: "14:00",
+      endTime: "16:00",
+      mode: "online",
+      zoomLink: "https://zoom.us/j/987654321",
       capacity: 8,
       isPublished: true,
-      requiresApproval: true
+      requiresApproval: true,
     },
-    { 
-      id: 'a3', 
-      day: 'Friday', 
-      startTime: '10:00', 
-      endTime: '12:00',
-      mode: 'offline',
-      location: 'Room A5-102',
+    {
+      id: "a3",
+      day: "Friday",
+      startTime: "10:00",
+      endTime: "12:00",
+      mode: "offline",
+      location: "Room A5-102",
       capacity: 4,
       isPublished: false,
-      requiresApproval: false
+      requiresApproval: false,
     },
   ]);
-  
+
   const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([
-    { id: 'b1', date: '2025-12-25', reason: 'Christmas Holiday' },
-    { id: 'b2', date: '2025-12-31', reason: 'New Year Preparation' }
+    { id: "b1", date: "2025-12-25", reason: "Christmas Holiday" },
+    { id: "b2", date: "2025-12-31", reason: "New Year Preparation" },
   ]);
-  
+
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBlackoutDialog, setShowBlackoutDialog] = useState(false);
   const [newSlot, setNewSlot] = useState<Partial<TimeSlot>>({
-    day: 'Monday',
-    startTime: '14:00',
-    endTime: '16:00',
-    mode: 'both',
-    location: '',
-    zoomLink: '',
+    day: "Monday",
+    startTime: "14:00",
+    endTime: "16:00",
+    mode: "both",
+    location: "",
+    zoomLink: "",
     capacity: 5,
     isPublished: false,
-    requiresApproval: false
+    requiresApproval: false,
   });
-  
+
   const [newBlackout, setNewBlackout] = useState({
-    date: '',
-    reason: ''
+    date: "",
+    reason: "",
   });
 
   const handleAddSlot = () => {
-    if (!newSlot.startTime || !newSlot.endTime || newSlot.startTime >= newSlot.endTime) {
-      toast.error('End time must be after start time');
+    if (
+      !newSlot.startTime ||
+      !newSlot.endTime ||
+      newSlot.startTime >= newSlot.endTime
+    ) {
+      toast.error("End time must be after start time");
       return;
     }
 
-    if (newSlot.mode === 'offline' && !newSlot.location) {
-      toast.error('Please specify a location for offline sessions');
+    if (newSlot.mode === "offline" && !newSlot.location) {
+      toast.error("Please specify a location for offline sessions");
       return;
     }
 
-    if ((newSlot.mode === 'online' || newSlot.mode === 'both') && !newSlot.zoomLink) {
-      toast.error('Please provide a Zoom link for online sessions');
+    if (
+      (newSlot.mode === "online" || newSlot.mode === "both") &&
+      !newSlot.zoomLink
+    ) {
+      toast.error("Please provide a Zoom link for online sessions");
       return;
     }
 
     const slot: TimeSlot = {
       id: `a${availability.length + 1}`,
-      day: newSlot.day || 'Monday',
+      day: newSlot.day || "Monday",
       startTime: newSlot.startTime,
       endTime: newSlot.endTime,
       mode: newSlot.mode,
@@ -128,72 +155,72 @@ export function TutorSchedule() {
       zoomLink: newSlot.zoomLink,
       capacity: newSlot.capacity || 5,
       isPublished: false,
-      requiresApproval: newSlot.requiresApproval || false
+      requiresApproval: newSlot.requiresApproval || false,
     };
 
     setAvailability([...availability, slot]);
-    toast.success('Time slot added successfully', {
-      description: 'Remember to publish your availability when ready'
+    toast.success("Time slot added successfully", {
+      description: "Remember to publish your availability when ready",
     });
     setShowAddDialog(false);
-    setNewSlot({ 
-      day: 'Monday', 
-      startTime: '14:00', 
-      endTime: '16:00',
-      mode: 'both',
-      location: '',
-      zoomLink: '',
+    setNewSlot({
+      day: "Monday",
+      startTime: "14:00",
+      endTime: "16:00",
+      mode: "both",
+      location: "",
+      zoomLink: "",
       capacity: 5,
       isPublished: false,
-      requiresApproval: false
+      requiresApproval: false,
     });
   };
 
   const handleRemoveSlot = (id: string) => {
     setAvailability(availability.filter(slot => slot.id !== id));
-    toast.success('Time slot removed');
+    toast.success("Time slot removed");
   };
 
   const handleAddBlackout = () => {
     if (!newBlackout.date || !newBlackout.reason) {
-      toast.error('Please fill in all fields');
+      toast.error("Please fill in all fields");
       return;
     }
 
     const blackout: BlackoutDate = {
       id: `b${blackoutDates.length + 1}`,
-      ...newBlackout
+      ...newBlackout,
     };
 
     setBlackoutDates([...blackoutDates, blackout]);
-    toast.success('Blackout date added');
+    toast.success("Blackout date added");
     setShowBlackoutDialog(false);
-    setNewBlackout({ date: '', reason: '' });
+    setNewBlackout({ date: "", reason: "" });
   };
 
   const handleRemoveBlackout = (id: string) => {
     setBlackoutDates(blackoutDates.filter(b => b.id !== id));
-    toast.success('Blackout date removed');
+    toast.success("Blackout date removed");
   };
 
   const handlePublishAvailability = () => {
     const unpublished = availability.filter(slot => !slot.isPublished);
-    
+
     if (unpublished.length === 0) {
-      toast.info('All slots are already published');
+      toast.info("All slots are already published");
       return;
     }
 
     setAvailability(availability.map(slot => ({ ...slot, isPublished: true })));
-    toast.success('Availability published!', {
-      description: `${unpublished.length} slot(s) are now visible to students`
+    toast.success("Availability published!", {
+      description: `${unpublished.length} slot(s) are now visible to students`,
     });
   };
 
   // Group by day
   const scheduleByDay = DAYS.map(day => ({
     day,
-    slots: availability.filter(slot => slot.day === day)
+    slots: availability.filter(slot => slot.day === day),
   }));
 
   return (
@@ -201,18 +228,17 @@ export function TutorSchedule() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-gray-900 mb-2">Manage Schedule</h1>
-          <p className="text-gray-600">Set your available time slots for tutoring</p>
+          <p className="text-gray-600">
+            Set your available time slots for tutoring
+          </p>
         </div>
         <div className="flex gap-3">
-          <Button 
-            onClick={() => setShowBlackoutDialog(true)} 
-            variant="outline"
-          >
+          <Button onClick={() => setShowBlackoutDialog(true)} variant="outline">
             <Calendar className="mr-2 h-4 w-4" />
             Add Blackout Date
           </Button>
-          <Button 
-            onClick={() => setShowAddDialog(true)} 
+          <Button
+            onClick={() => setShowAddDialog(true)}
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -229,13 +255,15 @@ export function TutorSchedule() {
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-600" />
                 <div>
-                  <p className="text-blue-900">You have unpublished time slots</p>
+                  <p className="text-blue-900">
+                    You have unpublished time slots
+                  </p>
                   <p className="text-sm text-blue-700">
                     Publish your availability to make it visible to students
                   </p>
                 </div>
               </div>
-              <Button 
+              <Button
                 onClick={handlePublishAvailability}
                 className="bg-blue-600 hover:bg-blue-700"
               >
@@ -262,43 +290,62 @@ export function TutorSchedule() {
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-gray-900">{day}</h3>
                   <Badge variant="outline">
-                    {slots.length} {slots.length === 1 ? 'slot' : 'slots'}
+                    {slots.length} {slots.length === 1 ? "slot" : "slots"}
                   </Badge>
                 </div>
                 {slots.length > 0 ? (
                   <div className="space-y-2">
-                    {slots.map((slot) => (
-                      <div 
+                    {slots.map(slot => (
+                      <div
                         key={slot.id}
                         className={`p-4 rounded-lg border-2 ${
-                          slot.isPublished 
-                            ? 'bg-blue-50 border-blue-200' 
-                            : 'bg-gray-50 border-gray-200'
+                          slot.isPublished
+                            ? "bg-blue-50 border-blue-200"
+                            : "bg-gray-50 border-gray-200"
                         }`}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2">
-                              <Clock className={`w-4 h-4 ${slot.isPublished ? 'text-blue-600' : 'text-gray-600'}`} />
-                              <span className={slot.isPublished ? 'text-blue-900' : 'text-gray-900'}>
+                              <Clock
+                                className={`w-4 h-4 ${slot.isPublished ? "text-blue-600" : "text-gray-600"}`}
+                              />
+                              <span
+                                className={
+                                  slot.isPublished
+                                    ? "text-blue-900"
+                                    : "text-gray-900"
+                                }
+                              >
                                 {slot.startTime} - {slot.endTime}
                               </span>
-                              <Badge variant={slot.isPublished ? 'default' : 'secondary'}>
-                                {slot.isPublished ? 'Published' : 'Draft'}
+                              <Badge
+                                variant={
+                                  slot.isPublished ? "default" : "secondary"
+                                }
+                              >
+                                {slot.isPublished ? "Published" : "Draft"}
                               </Badge>
                               {slot.requiresApproval && (
-                                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-yellow-50 text-yellow-700 border-yellow-300"
+                                >
                                   <CheckCircle2 className="w-3 h-3 mr-1" />
                                   Requires Approval
                                 </Badge>
                               )}
                             </div>
-                            
+
                             <div className="flex flex-wrap gap-2 text-sm">
                               <div className="flex items-center gap-1 text-gray-600">
-                                {slot.mode === 'online' && <Video className="w-4 h-4" />}
-                                {slot.mode === 'offline' && <MapPin className="w-4 h-4" />}
-                                {slot.mode === 'both' && (
+                                {slot.mode === "online" && (
+                                  <Video className="w-4 h-4" />
+                                )}
+                                {slot.mode === "offline" && (
+                                  <MapPin className="w-4 h-4" />
+                                )}
+                                {slot.mode === "both" && (
                                   <>
                                     <Video className="w-4 h-4" />
                                     <MapPin className="w-4 h-4" />
@@ -306,11 +353,13 @@ export function TutorSchedule() {
                                 )}
                                 <span className="capitalize">{slot.mode}</span>
                               </div>
-                              
+
                               {slot.location && (
-                                <span className="text-gray-600">📍 {slot.location}</span>
+                                <span className="text-gray-600">
+                                  📍 {slot.location}
+                                </span>
                               )}
-                              
+
                               {slot.capacity && (
                                 <div className="flex items-center gap-1 text-gray-600">
                                   <Users className="w-4 h-4" />
@@ -318,14 +367,14 @@ export function TutorSchedule() {
                                 </div>
                               )}
                             </div>
-                            
+
                             {slot.zoomLink && (
                               <p className="text-xs text-gray-500 truncate">
                                 🔗 {slot.zoomLink}
                               </p>
                             )}
                           </div>
-                          
+
                           <Button
                             size="sm"
                             variant="ghost"
@@ -360,8 +409,8 @@ export function TutorSchedule() {
         <CardContent>
           {blackoutDates.length > 0 ? (
             <div className="space-y-2">
-              {blackoutDates.map((blackout) => (
-                <div 
+              {blackoutDates.map(blackout => (
+                <div
                   key={blackout.id}
                   className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
                 >
@@ -399,7 +448,9 @@ export function TutorSchedule() {
               <h3 className="text-blue-900 mb-2">Availability Summary</h3>
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div className="text-center">
-                  <p className="text-2xl text-blue-600">{availability.length}</p>
+                  <p className="text-2xl text-blue-600">
+                    {availability.length}
+                  </p>
                   <p className="text-sm text-blue-800">Total Slots</p>
                 </div>
                 <div className="text-center">
@@ -409,7 +460,9 @@ export function TutorSchedule() {
                   <p className="text-sm text-green-800">Published</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl text-orange-600">{blackoutDates.length}</p>
+                  <p className="text-2xl text-orange-600">
+                    {blackoutDates.length}
+                  </p>
                   <p className="text-sm text-orange-800">Blackout Dates</p>
                 </div>
               </div>
@@ -434,11 +487,13 @@ export function TutorSchedule() {
               <Label>Day of Week</Label>
               <select
                 value={newSlot.day}
-                onChange={(e) => setNewSlot({ ...newSlot, day: e.target.value })}
+                onChange={e => setNewSlot({ ...newSlot, day: e.target.value })}
                 className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm mt-2"
               >
                 {DAYS.map(day => (
-                  <option key={day} value={day}>{day}</option>
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
                 ))}
               </select>
             </div>
@@ -449,11 +504,15 @@ export function TutorSchedule() {
                 <Label>Start Time</Label>
                 <select
                   value={newSlot.startTime}
-                  onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                  onChange={e =>
+                    setNewSlot({ ...newSlot, startTime: e.target.value })
+                  }
                   className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm mt-2"
                 >
                   {TIME_SLOTS.map(time => (
-                    <option key={time} value={time}>{time}</option>
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -462,11 +521,15 @@ export function TutorSchedule() {
                 <Label>End Time</Label>
                 <select
                   value={newSlot.endTime}
-                  onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                  onChange={e =>
+                    setNewSlot({ ...newSlot, endTime: e.target.value })
+                  }
                   className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white text-sm mt-2"
                 >
                   {TIME_SLOTS.map(time => (
-                    <option key={time} value={time}>{time}</option>
+                    <option key={time} value={time}>
+                      {time}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -475,9 +538,9 @@ export function TutorSchedule() {
             {/* Mode Selection */}
             <div>
               <Label>Session Mode</Label>
-              <Select 
-                value={newSlot.mode} 
-                onValueChange={(value: 'online' | 'offline' | 'both') => 
+              <Select
+                value={newSlot.mode}
+                onValueChange={(value: "online" | "offline" | "both") =>
                   setNewSlot({ ...newSlot, mode: value })
                 }
               >
@@ -509,7 +572,7 @@ export function TutorSchedule() {
             </div>
 
             {/* Location (for offline/both) */}
-            {(newSlot.mode === 'offline' || newSlot.mode === 'both') && (
+            {(newSlot.mode === "offline" || newSlot.mode === "both") && (
               <div>
                 <Label className="flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
@@ -517,7 +580,9 @@ export function TutorSchedule() {
                 </Label>
                 <Input
                   value={newSlot.location}
-                  onChange={(e) => setNewSlot({ ...newSlot, location: e.target.value })}
+                  onChange={e =>
+                    setNewSlot({ ...newSlot, location: e.target.value })
+                  }
                   placeholder="e.g., Room A5-101, Building H6"
                   className="mt-2"
                 />
@@ -525,7 +590,7 @@ export function TutorSchedule() {
             )}
 
             {/* Zoom Link (for online/both) */}
-            {(newSlot.mode === 'online' || newSlot.mode === 'both') && (
+            {(newSlot.mode === "online" || newSlot.mode === "both") && (
               <div>
                 <Label className="flex items-center gap-2">
                   <Video className="w-4 h-4" />
@@ -533,7 +598,9 @@ export function TutorSchedule() {
                 </Label>
                 <Input
                   value={newSlot.zoomLink}
-                  onChange={(e) => setNewSlot({ ...newSlot, zoomLink: e.target.value })}
+                  onChange={e =>
+                    setNewSlot({ ...newSlot, zoomLink: e.target.value })
+                  }
                   placeholder="https://zoom.us/j/..."
                   className="mt-2"
                 />
@@ -551,7 +618,12 @@ export function TutorSchedule() {
                 min="1"
                 max="20"
                 value={newSlot.capacity}
-                onChange={(e) => setNewSlot({ ...newSlot, capacity: parseInt(e.target.value) || 5 })}
+                onChange={e =>
+                  setNewSlot({
+                    ...newSlot,
+                    capacity: parseInt(e.target.value) || 5,
+                  })
+                }
                 className="mt-2"
               />
               <p className="text-xs text-gray-500 mt-1">
@@ -566,8 +638,11 @@ export function TutorSchedule() {
                   type="checkbox"
                   id="requiresApproval"
                   checked={newSlot.requiresApproval || false}
-                  onChange={(e) => 
-                    setNewSlot({ ...newSlot, requiresApproval: e.target.checked })
+                  onChange={e =>
+                    setNewSlot({
+                      ...newSlot,
+                      requiresApproval: e.target.checked,
+                    })
                   }
                   className="dark:border-white-400/20 dark:scale-100 transition-all duration-500 ease-in-out dark:hover:scale-110 dark:checked:scale-100 w-5 h-5 border-gray-300 rounded cursor-pointer"
                 />
@@ -581,7 +656,9 @@ export function TutorSchedule() {
                   Students wait for approval before booking
                 </label>
                 <p className="text-xs text-gray-600 mt-1">
-                  When enabled, students must request to book this slot and wait for your approval before the session is confirmed. This gives you control over who can attend.
+                  When enabled, students must request to book this slot and wait
+                  for your approval before the session is confirmed. This gives
+                  you control over who can attend.
                 </p>
               </div>
             </div>
@@ -591,7 +668,10 @@ export function TutorSchedule() {
             <Button variant="outline" onClick={() => setShowAddDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddSlot} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleAddSlot}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Add Time Slot
             </Button>
           </DialogFooter>
@@ -614,9 +694,11 @@ export function TutorSchedule() {
               <Input
                 type="date"
                 value={newBlackout.date}
-                onChange={(e) => setNewBlackout({ ...newBlackout, date: e.target.value })}
+                onChange={e =>
+                  setNewBlackout({ ...newBlackout, date: e.target.value })
+                }
                 className="mt-2"
-                min={new Date().toISOString().split('T')[0]}
+                min={new Date().toISOString().split("T")[0]}
               />
             </div>
 
@@ -624,7 +706,9 @@ export function TutorSchedule() {
               <Label>Reason</Label>
               <Input
                 value={newBlackout.reason}
-                onChange={(e) => setNewBlackout({ ...newBlackout, reason: e.target.value })}
+                onChange={e =>
+                  setNewBlackout({ ...newBlackout, reason: e.target.value })
+                }
                 placeholder="e.g., Conference, Holiday, Personal Leave"
                 className="mt-2"
               />
@@ -632,10 +716,16 @@ export function TutorSchedule() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBlackoutDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowBlackoutDialog(false)}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddBlackout} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleAddBlackout}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               Add Blackout Date
             </Button>
           </DialogFooter>

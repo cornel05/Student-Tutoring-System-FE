@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -8,7 +8,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from './ui/alert-dialog';
+} from "./ui/alert-dialog";
 
 interface ConsentDialogProps {
   open: boolean;
@@ -38,7 +38,8 @@ export function ConsentDialog({ open, onConsent }: ConsentDialogProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              By declining access to your academic data, you will not be able to:
+              By declining access to your academic data, you will not be able
+              to:
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-3">
@@ -49,14 +50,15 @@ export function ConsentDialog({ open, onConsent }: ConsentDialogProps) {
               <li>Get recommendations for subjects that need improvement</li>
             </ul>
             <p className="text-sm text-gray-700">
-              This will significantly limit the system's ability to help you succeed in your studies.
+              This will significantly limit the system's ability to help you
+              succeed in your studies.
             </p>
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setShowConfirmation(false)}>
               Go Back
             </AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleFinalDecline}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -78,9 +80,7 @@ export function ConsentDialog({ open, onConsent }: ConsentDialogProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-3">
-          <p className="text-sm text-gray-700">
-            This will allow us to:
-          </p>
+          <p className="text-sm text-gray-700">This will allow us to:</p>
           <ul className="list-disc list-inside space-y-1 text-blue-700 text-sm">
             <li>Display your course scores and performance metrics</li>
             <li>Analyze subjects where you might need additional support</li>
@@ -88,7 +88,8 @@ export function ConsentDialog({ open, onConsent }: ConsentDialogProps) {
             <li>Provide personalized learning recommendations</li>
           </ul>
           <p className="text-sm text-gray-600">
-            Your data will only be used within the HCMUT Peer Tutoring System and will not be shared with third parties.
+            Your data will only be used within the HCMUT Peer Tutoring System
+            and will not be shared with third parties.
           </p>
         </div>
         <AlertDialogFooter>

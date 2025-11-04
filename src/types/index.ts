@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'tutor' | 'ads' | 'oaa' | 'osa';
+  role: "student" | "tutor" | "ads" | "oaa" | "osa";
   studentId?: string;
   staffId?: string;
   major?: string;
@@ -40,7 +40,7 @@ export interface TimeSlot {
   day: string;
   startTime: string;
   endTime: string;
-  mode?: 'online' | 'offline' | 'both';
+  mode?: "online" | "offline" | "both";
   location?: string;
   zoomLink?: string;
   capacity?: number;
@@ -66,7 +66,7 @@ export interface TutoringSession {
   studentId: string;
   tutorId: string;
   subjectId: string;
-  status: 'active' | 'cancelled' | 'completed';
+  status: "active" | "cancelled" | "completed";
   startDate: string;
   meetings: Meeting[];
   studentName?: string;
@@ -81,7 +81,7 @@ export interface Meeting {
   date: string;
   time: string;
   duration: number;
-  type: 'online' | 'offline';
+  type: "online" | "offline";
   zoomLink?: string;
   attended: boolean;
   notes?: string;
@@ -92,13 +92,13 @@ export interface Meeting {
 export interface SessionMaterial {
   id: string;
   name: string;
-  type: 'file' | 'library-link';
+  type: "file" | "library-link";
   fileType?: string;
   fileSize?: number;
   url: string;
   description?: string;
   tags?: string[];
-  visibility: 'private' | 'shared';
+  visibility: "private" | "shared";
   uploadedAt: string;
   uploadedBy: string;
 }
