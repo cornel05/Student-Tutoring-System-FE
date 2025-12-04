@@ -326,3 +326,57 @@ class AvailabilityService {
 }
 
 export const availabilityService = new AvailabilityService();
+
+// Analytics Service
+export interface AnalyticsReport {
+  reportId: string;
+  reportType: string;
+  generatedBy: string;
+  generatedAt: string;
+  summary: Record<string, any>;
+  data: Record<string, any>;
+}
+
+class AnalyticsService {
+  async getTutorPerformanceReport(generatedBy = 'system'): Promise<AnalyticsReport> {
+    const response = await fetch(
+      `${API_BASE_URL}/analytics/reports/tutor-performance?generatedBy=${generatedBy}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to get tutor performance report: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  async getStudentEngagementReport(generatedBy = 'system'): Promise<AnalyticsReport> {
+    const response = await fetch(
+      `${API_BASE_URL}/analytics/reports/student-engagement?generatedBy=${generatedBy}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to get student engagement report: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  async getMaterialUsageReport(generatedBy = 'system'): Promise<AnalyticsReport> {
+    const response = await fetch(
+      `${API_BASE_URL}/analytics/reports/material-usage?generatedBy=${generatedBy}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to get material usage report: ${response.statusText}`);
+    }
+    return response.json();
+  }
+
+  async getComprehensiveReport(generatedBy = 'system'): Promise<AnalyticsReport> {
+    const response = await fetch(
+      `${API_BASE_URL}/analytics/reports/comprehensive?generatedBy=${generatedBy}`
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to get comprehensive report: ${response.statusText}`);
+    }
+    return response.json();
+  }
+}
+
+export const analyticsService = new AnalyticsService();
