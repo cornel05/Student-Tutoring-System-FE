@@ -57,6 +57,13 @@ import { toast } from "sonner";
 import { sessionService, profileService, feedbackService } from "../../services/api";
 import { getCurrentUser } from "../../utils/auth";
 
+type StudentFeedback = {
+  rating: number;
+  comment: string;
+  recommended: boolean;
+  timestamp: string;
+};
+
 export function TutorSessions() {
   const [sessions, setSessions] = useState<TutoringSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -198,7 +205,7 @@ export function TutorSessions() {
   const cancelledSessions = sessions.filter(s => s.status === "cancelled");
 
   const session = sessions.find(s => s.id === selectedSession);
-  const studentFeedback: {rating: number; comment: string; recommended: boolean; timestamp: string} | null = null; // TODO: Load from API
+  const studentFeedback: StudentFeedback | null = null; // TODO: Load from API
 
   // Calculate session statistics
   const getSessionStats = (session: TutoringSession) => {
@@ -610,7 +617,7 @@ export function TutorSessions() {
             {completedSessions.map(session => {
               const stats = getSessionStats(session);
               const subject = getSubjectDetails(session.subjectId);
-              const feedback: { rating: number; comment: string; recommended: boolean } | null = null; // TODO: Load individual session feedback from API
+              const feedback: StudentFeedback | null = null; // TODO: Load individual session feedback from API
 
               return (
                 <Card
@@ -639,14 +646,6 @@ export function TutorSessions() {
                             <Badge variant="outline" className="text-xs">
                               {subject?.code}
                             </Badge>
-                            {feedback && (
-                              <div className="flex items-center gap-1">
-                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                <span className="text-xs text-gray-600">
-                                  {feedback.rating}.0
-                                </span>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -683,36 +682,7 @@ export function TutorSessions() {
                       </div>
                     </div>
 
-                    {/* Student Feedback Preview */}
-                    {feedback && (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-start gap-2 mb-2">
-                          <ThumbsUp className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="text-green-900 text-sm font-medium">
-                                Student Feedback
-                              </h4>
-                              <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map(star => (
-                                  <Star
-                                    key={star}
-                                    className={`w-3 h-3 ${
-                                      star <= feedback.rating
-                                        ? "fill-yellow-400 text-yellow-400"
-                                        : "text-gray-300"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-green-800 text-xs line-clamp-2">
-                              {feedback.comment}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    {/* Student Feedback Preview - TODO: Load from API */}
 
                     {/* Actions */}
                     <Button
@@ -1335,7 +1305,10 @@ export function TutorSessions() {
             {/* Student Feedback Tab */}
             <TabsContent value="feedback" className="space-y-4">
               {/* TODO: Load student feedback from API */}
-              {false ? (
+              {(() => {
+                const feedback = studentFeedback as StudentFeedback | null;
+                if (feedback) {
+                  return (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1348,14 +1321,14 @@ export function TutorSessions() {
                     <div className="p-6 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200">
                       <div className="text-center mb-4">
                         <p className="text-5xl font-bold text-yellow-900 mb-2">
-                          {studentFeedback.rating}.0
+                          {feedback.rating}.0
                         </p>
                         <div className="flex items-center justify-center gap-1 mb-2">
                           {[1, 2, 3, 4, 5].map(star => (
                             <Star
                               key={star}
                               className={`w-6 h-6 ${
-                                star <= studentFeedback.rating
+                                star <= feedback.rating
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-gray-300"
                               }`}
@@ -1364,13 +1337,13 @@ export function TutorSessions() {
                         </div>
                         <p className="text-sm text-gray-600">
                           Rating:{" "}
-                          {studentFeedback.rating === 5
+                          {feedback.rating === 5
                             ? "Excellent"
-                            : studentFeedback.rating === 4
+                            : feedback.rating === 4
                               ? "Very Good"
-                              : studentFeedback.rating === 3
+                              : feedback.rating === 3
                                 ? "Good"
-                                : studentFeedback.rating === 2
+                                : feedback.rating === 2
                                   ? "Fair"
                                   : "Poor"}
                         </p>
@@ -1384,7 +1357,7 @@ export function TutorSessions() {
                       </h4>
                       <div className="p-4 bg-gray-50 rounded-lg border">
                         <p className="text-gray-900 leading-relaxed">
-                          {studentFeedback.comment}
+                          {feedback.comment}
                         </p>
                       </div>
                     </div>
@@ -1396,13 +1369,13 @@ export function TutorSessions() {
                       </h4>
                       <div
                         className={`p-4 rounded-lg border-2 ${
-                          studentFeedback.recommended
+                          feedback.recommended
                             ? "bg-green-50 border-green-200"
                             : "bg-red-50 border-red-200"
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          {studentFeedback.recommended ? (
+                          {feedback.recommended ? (
                             <>
                               <ThumbsUp className="w-6 h-6 text-green-600" />
                               <div>
@@ -1436,9 +1409,7 @@ export function TutorSessions() {
                     <div className="pt-4 border-t">
                       <p className="text-xs text-gray-500">
                         Feedback submitted on{" "}
-                        {new Date(
-                          studentFeedback.timestamp
-                        ).toLocaleDateString()}
+                        {new Date(feedback.timestamp).toLocaleDateString()}
                       </p>
                     </div>
 
@@ -1455,7 +1426,9 @@ export function TutorSessions() {
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
+                  );
+                } else {
+                  return (
                 <Card>
                   <CardContent className="p-12 text-center">
                     <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
@@ -1469,7 +1442,9 @@ export function TutorSessions() {
                     </p>
                   </CardContent>
                 </Card>
-              )}
+                  );
+                }
+              })()}
 
               {/* Aggregate Feedback Stats */}
               {feedbackStats && (
