@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Badge } from "../ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Textarea } from "../ui/textarea";
 import {
@@ -20,7 +27,6 @@ import {
   X,
   Plus,
 } from "lucide-react";
-import { mockTutorUser } from "../../data/mockData";
 import { toast } from "sonner";
 import { TutorCredential } from "../../types";
 import {
@@ -31,33 +37,84 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { profileService, UserProfile } from "../../services/api";
 
 export function TutorProfile() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState(mockTutorUser);
-  const [subjects, setSubjects] = useState([
-    "MT2013",
-    "MT1003",
-    "MT1005",
-    "PH1003",
-  ]);
-  const [bio, setBio] = useState(
-    "Experienced mathematics tutor with 10+ years of teaching experience. Specializing in calculus, linear algebra, and statistics."
-  );
-  const [credentials, setCredentials] = useState<TutorCredential[]>([
-    {
-      id: "c1",
-      name: "PhD Certificate - Mathematics",
-      fileUrl: "#",
-      uploadDate: "2023-01-15",
-    },
-    {
-      id: "c2",
-      name: "Teaching License",
-      fileUrl: "#",
-      uploadDate: "2023-02-20",
-    },
-  ]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [bio, setBio] = useState("");
+  const [credentials, setCredentials] = useState<TutorCredential[]>([]);
+
+  // Get user from localStorage (set during login)
+  const getCurrentUser = () => {
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return null;
+  };
+  
+  const currentUser = getCurrentUser();
+  const userId = currentUser?.id || "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const tutorId = "tutor-1";
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
+
+  const loadProfile = async () => {
+    setIsLoading(true);
+    try {
+      console.log("Loading profile for userId:", userId);
+      const data = await profileService.getUserProfile(userId);
+      console.log("Profile data loaded:", data);
+      setProfile(data);
+      setBio(data.bio || "");
+      
+      // Handle expertiseAreas - can be string or array
+      if (data.expertiseAreas) {
+        if (typeof data.expertiseAreas === 'string') {
+          setSubjects(data.expertiseAreas.split(',').map((s: string) => s.trim()));
+        } else if (Array.isArray(data.expertiseAreas)) {
+          setSubjects(data.expertiseAreas);
+        } else {
+          setSubjects([]);
+        }
+      } else {
+        setSubjects([]);
+      }
+      
+      toast.success("Profile loaded successfully");
+    } catch (error: any) {
+      console.error("Failed to load profile:", error);
+      
+      if (error.message.includes("404") || error.message.includes("Not Found")) {
+        toast.error("Profile not found. Please contact admin to create your profile.");
+        // Initialize empty profile for editing
+        setProfile({
+          id: userId,
+          firstName: "",
+          lastName: "",
+          email: "",
+          phoneNumber: "",
+          campus: "",
+          address: "",
+          gender: "",
+          role: "TUTOR",
+          bio: "",
+          expertiseAreas: "",
+        });
+        setBio("");
+        setSubjects([]);
+      } else {
+        toast.error("Failed to load profile. Please check backend connection.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const [showAddCredential, setShowAddCredential] = useState(false);
   const [showAddSubject, setShowAddSubject] = useState(false);
   const [newCredentialName, setNewCredentialName] = useState("");
@@ -74,30 +131,59 @@ export function TutorProfile() {
     "CO2003",
   ];
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully", {
-      description: "Your changes have been saved",
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    if (!profile) return;
+
+    try {
+      const updateData = {
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        phoneNumber: profile.phoneNumber,
+        campus: profile.campus,
+        address: profile.address,
+        gender: profile.gender,
+        bio: bio,
+        expertiseAreas: subjects, // Send as array, not string
+      };
+
+      console.log("Updating profile with userId:", userId);
+      console.log("Update data:", updateData);
+      await profileService.updateUserProfile(userId, updateData);
+      toast.success("Profile updated successfully", {
+        description: "Your changes have been saved",
+      });
+      setIsEditing(false);
+      await loadProfile();
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      toast.error("Failed to update profile");
+    }
   };
 
-  const handleUploadCredential = () => {
-    if (!newCredentialName.trim()) {
-      toast.error("Please enter a credential name");
+  const handleUploadCredential = async (file: File) => {
+    if (!file) {
+      toast.error("Please select a file");
       return;
     }
 
-    const newCredential: TutorCredential = {
-      id: `c${credentials.length + 1}`,
-      name: newCredentialName,
-      fileUrl: "#",
-      uploadDate: new Date().toISOString().split("T")[0],
-    };
+    try {
+      const result = await profileService.uploadTutorCredentials(tutorId, file);
+      
+      const newCredential: TutorCredential = {
+        id: `c${credentials.length + 1}`,
+        name: file.name,
+        fileUrl: "#",
+        uploadDate: new Date().toISOString().split("T")[0],
+      };
 
-    setCredentials([...credentials, newCredential]);
-    toast.success("Credential uploaded successfully");
-    setShowAddCredential(false);
-    setNewCredentialName("");
+      setCredentials([...credentials, newCredential]);
+      toast.success("Credential uploaded successfully");
+      setShowAddCredential(false);
+      setNewCredentialName("");
+    } catch (error) {
+      console.error("Failed to upload credential:", error);
+      toast.error("Failed to upload credential");
+    }
   };
 
   const handleRemoveCredential = (id: string) => {
@@ -146,90 +232,183 @@ export function TutorProfile() {
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Avatar */}
-          <div className="flex items-center gap-6">
-            <Avatar className="w-24 h-24">
-              <AvatarImage src={profile.avatar} alt={profile.name} />
-              <AvatarFallback>
-                <User className="w-12 h-12" />
-              </AvatarFallback>
-            </Avatar>
-            {isEditing && (
-              <Button variant="outline" size="sm">
-                Change Photo
-              </Button>
-            )}
-          </div>
+      {isLoading ? (
+        <Card>
+          <CardContent className="p-8 text-center text-gray-500">
+            Loading profile...
+          </CardContent>
+        </Card>
+      ) : !profile ? (
+        <Card>
+          <CardContent className="p-8 text-center text-red-500">
+            Failed to load profile
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Avatar */}
+            <div className="flex items-center gap-6">
+              <Avatar className="w-24 h-24">
+                <AvatarImage 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.email}`} 
+                  alt={`${profile.firstName} ${profile.lastName}`} 
+                />
+                <AvatarFallback>
+                  <User className="w-12 h-12" />
+                </AvatarFallback>
+              </Avatar>
+              {isEditing && (
+                <Button variant="outline" size="sm">
+                  Change Photo
+                </Button>
+              )}
+            </div>
 
-          {/* Form Fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label className="flex items-center gap-2 mb-2">
-                <User className="w-4 h-4" />
-                Full Name
-              </Label>
-              <Input
-                value={profile.name}
-                onChange={e => setProfile({ ...profile, name: e.target.value })}
-                disabled={!isEditing}
-              />
+            {/* Form Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <User className="w-4 h-4" />
+                  First Name
+                </Label>
+                <Input
+                  value={profile.firstName}
+                  onChange={e => setProfile({ ...profile, firstName: e.target.value })}
+                  disabled={!isEditing}
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <User className="w-4 h-4" />
+                  Last Name
+                </Label>
+                <Input
+                  value={profile.lastName}
+                  onChange={e => setProfile({ ...profile, lastName: e.target.value })}
+                  disabled={!isEditing}
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <Mail className="w-4 h-4" />
+                  Email
+                </Label>
+                <Input value={profile.email} disabled className="bg-gray-50" />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <Phone className="w-4 h-4" />
+                  Phone Number
+                </Label>
+                <Input
+                  value={profile.phoneNumber || ""}
+                  onChange={e =>
+                    setProfile({ ...profile, phoneNumber: e.target.value })
+                  }
+                  disabled={!isEditing}
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <BookOpen className="w-4 h-4" />
+                  Campus
+                </Label>
+                {isEditing ? (
+                  <Select
+                    value={profile.campus || ""}
+                    onValueChange={(value: string) =>
+                      setProfile({ ...profile, campus: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select campus" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-white">
+                      <SelectItem value="Campus 01">Campus 01</SelectItem>
+                      <SelectItem value="Campus 02">Campus 02</SelectItem>
+                      <SelectItem value="Campus 03">Campus 03</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={profile.campus || ""} disabled className="bg-gray-50" />
+                )}
+              </div>
+
+              <div>
+                <Label className="flex items-center gap-2 mb-2">
+                  <IdCard className="w-4 h-4" />
+                  Gender
+                </Label>
+                {isEditing ? (
+                  <Select
+                    value={profile.gender || ""}
+                    onValueChange={(value: string) =>
+                      setProfile({ ...profile, gender: value })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent className="z-50 bg-white">
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input value={profile.gender || ""} disabled className="bg-gray-50" />
+                )}
+              </div>
             </div>
 
             <div>
               <Label className="flex items-center gap-2 mb-2">
                 <IdCard className="w-4 h-4" />
-                Staff ID
-              </Label>
-              <Input value={profile.staffId} disabled className="bg-gray-50" />
-            </div>
-
-            <div>
-              <Label className="flex items-center gap-2 mb-2">
-                <Mail className="w-4 h-4" />
-                Email
-              </Label>
-              <Input value={profile.email} disabled className="bg-gray-50" />
-            </div>
-
-            <div>
-              <Label className="flex items-center gap-2 mb-2">
-                <Phone className="w-4 h-4" />
-                Phone Number
+                Address
               </Label>
               <Input
-                value={profile.phone}
+                value={profile.address || ""}
                 onChange={e =>
-                  setProfile({ ...profile, phone: e.target.value })
+                  setProfile({ ...profile, address: e.target.value })
                 }
                 disabled={!isEditing}
+                placeholder="Enter address"
               />
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      )}
 
-          {isEditing && (
-            <div className="flex gap-3 pt-4 border-t">
-              <Button
-                onClick={handleSave}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </Button>
-              <Button variant="outline" onClick={() => setIsEditing(false)}>
-                Cancel
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {isEditing && profile && (
+        <div className="flex gap-3">
+          <Button
+            onClick={handleSave}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save Changes
+          </Button>
+          <Button variant="outline" onClick={() => {
+            setIsEditing(false);
+            loadProfile();
+          }}>
+            Cancel
+          </Button>
+        </div>
+      )}
 
       {/* Tutoring Information */}
-      <Card>
+      {profile && (
+        <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="w-5 h-5" />
@@ -263,7 +442,7 @@ export function TutorProfile() {
               )}
             </div>
             <div className="flex flex-wrap gap-2">
-              {subjects.map(subject => (
+              {subjects.length > 0 ? subjects.map(subject => (
                 <Badge
                   key={subject}
                   variant="outline"
@@ -279,13 +458,17 @@ export function TutorProfile() {
                     </button>
                   )}
                 </Badge>
-              ))}
+              )) : (
+                <p className="text-sm text-gray-500">No subjects added yet</p>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Credentials */}
+      {profile && (
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -344,59 +527,7 @@ export function TutorProfile() {
           )}
         </CardContent>
       </Card>
-
-      {/* Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5" />
-            Performance Statistics
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="p-4 bg-blue-50 rounded-lg text-center">
-              <p className="text-3xl text-blue-600 mb-1">12</p>
-              <p className="text-sm text-gray-600">Total Students</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg text-center">
-              <p className="text-3xl text-green-600 mb-1">48</p>
-              <p className="text-sm text-gray-600">Sessions Completed</p>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-lg text-center">
-              <p className="text-3xl text-purple-600 mb-1">4.8</p>
-              <p className="text-sm text-gray-600">Average Rating</p>
-            </div>
-            <div className="p-4 bg-orange-50 rounded-lg text-center">
-              <p className="text-3xl text-orange-600 mb-1">92%</p>
-              <p className="text-sm text-gray-600">Success Rate</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* University Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>University Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-600 mb-1">Institution</p>
-              <p className="text-gray-900">HCMUT</p>
-            </div>
-            <div className="p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-600 mb-1">Department</p>
-              <p className="text-gray-900">Mathematics</p>
-            </div>
-            <div className="p-4 bg-purple-50 rounded-lg">
-              <p className="text-sm text-purple-600 mb-1">Position</p>
-              <p className="text-gray-900">Associate Professor</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      )}
 
       {/* Add Credential Dialog */}
       <Dialog open={showAddCredential} onOpenChange={setShowAddCredential}>
@@ -421,15 +552,20 @@ export function TutorProfile() {
 
             <div>
               <Label>Upload File</Label>
-              <div className="mt-2 border-2 border-dashed rounded-lg p-6 text-center">
-                <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600">
-                  Click to upload or drag and drop
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  PDF, JPG, PNG up to 10MB
-                </p>
-              </div>
+              <Input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setNewCredentialName(file.name);
+                  }
+                }}
+                className="mt-2"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                PDF, JPG, PNG up to 10MB
+              </p>
             </div>
           </div>
 
@@ -441,7 +577,15 @@ export function TutorProfile() {
               Cancel
             </Button>
             <Button
-              onClick={handleUploadCredential}
+              onClick={() => {
+                const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                const file = fileInput?.files?.[0];
+                if (file) {
+                  handleUploadCredential(file);
+                } else {
+                  toast.error("Please select a file");
+                }
+              }}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Upload

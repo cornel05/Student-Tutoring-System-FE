@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -52,52 +52,119 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { mockTutoringSessions, mockSubjects } from "../../data/mockData";
 import { TutoringSession, SessionMaterial } from "../../types";
 import { toast } from "sonner";
-
-// Mock student feedback data
-const mockStudentFeedback: Record<
-  string,
-  {
-    rating: number;
-    comment: string;
-    recommended: boolean;
-    timestamp: string;
-  }
-> = {
-  ts2: {
-    rating: 5,
-    comment:
-      "Excellent tutor! Very patient and explains concepts clearly. The teaching materials were well-prepared and the sessions were always productive.",
-    recommended: true,
-    timestamp: "2024-08-15",
-  },
-  ts3: {
-    rating: 4,
-    comment:
-      "Good teaching style and helpful explanations. Would have appreciated more practice problems.",
-    recommended: true,
-    timestamp: "2024-04-10",
-  },
-  ts4: {
-    rating: 5,
-    comment:
-      "Outstanding tutor! Really helped me understand complex networking concepts. Highly recommend!",
-    recommended: true,
-    timestamp: "2024-05-20",
-  },
-};
+import { sessionService, profileService, feedbackService } from "../../services/api";
+import { getCurrentUser } from "../../utils/auth";
 
 export function TutorSessions() {
-  const [sessions, setSessions] =
-    useState<TutoringSession[]>(mockTutoringSessions);
+  const [sessions, setSessions] = useState<TutoringSession[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [tutorId, setTutorId] = useState("");
+  const [feedbackStats, setFeedbackStats] = useState<{averageRating: number; totalFeedback: number} | null>(null);
+  
+  const currentUser = getCurrentUser();
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState("progress");
   const [progressNotes, setProgressNotes] = useState<Record<string, string>>(
     {}
   );
   const [savingProgress, setSavingProgress] = useState(false);
+  
+  useEffect(() => {
+    loadTutorData();
+  }, []);
+  
+  const loadTutorData = async () => {
+    if (!currentUser?.id) return;
+    
+    setIsLoading(true);
+    try {
+      // Get tutor profile to get tutorId
+      const profile: any = await profileService.getUserProfile(currentUser.id);
+      console.log("Tutor profile:", profile);
+      
+      if (profile.tutorId) {
+        setTutorId(profile.tutorId);
+        await loadSessions(profile.tutorId);
+        await loadFeedbackStats(profile.tutorId);
+      } else {
+        toast.error("Tutor ID not found");
+      }
+    } catch (error) {
+      console.error("Failed to load tutor data:", error);
+      toast.error("Failed to load sessions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const loadSessions = async (tutorIdParam: string) => {
+    try {
+      const apiSessions = await sessionService.getSessionsByTutor(tutorIdParam);
+      console.log("API Sessions:", apiSessions);
+      
+      // Convert API sessions to TutoringSession format
+      const convertedSessions: TutoringSession[] = await Promise.all(
+        apiSessions.map(async (s: any) => {
+          // Load student profile
+          let studentName = "Unknown Student";
+          let studentEmail = s.studentEmail || "";
+          try {
+            if (s.studentUuid) {
+              const studentProfile: any = await profileService.getUserProfile(s.studentUuid);
+              studentName = `${studentProfile.firstName || ""} ${studentProfile.lastName || ""}`.trim();
+              studentEmail = studentProfile.email || studentEmail;
+            }
+          } catch (error) {
+            console.error("Failed to load student profile:", error);
+          }
+          
+          return {
+            id: s.sessionId,
+            studentId: s.studentId,
+            tutorId: s.tutorId || tutorIdParam,
+            studentName: studentName,
+            studentEmail: studentEmail,
+            subjectId: s.subjectId || "unknown",
+            subjectCode: "",
+            status: s.status.toLowerCase() === "confirmed" || s.status.toLowerCase() === "pending_tutor_approval" ? "active" : s.status.toLowerCase() as "active" | "completed" | "cancelled",
+            startDate: s.startTime ? new Date(s.startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            duration: "63w",
+            meetings: [{
+              id: s.sessionId,
+              date: s.startTime ? new Date(s.startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              time: s.startTime ? new Date(s.startTime).toTimeString().split(' ')[0].substring(0, 5) : "00:00",
+              duration: 60,
+              type: s.mode === "ONLINE" ? "online" : "offline" as "online" | "offline",
+              zoomLink: s.mode === "ONLINE" ? s.locationOrLink : undefined,
+              attended: s.status === "COMPLETED",
+              notes: "",
+            }],
+            attendance: s.status === "COMPLETED" ? 100 : 0,
+            progress: 0,
+            lastMeeting: s.startTime || new Date().toISOString(),
+            nextMeeting: s.status === "CONFIRMED" ? s.startTime : undefined,
+          };
+        })
+      );
+      
+      setSessions(convertedSessions);
+      toast.success(`Loaded ${convertedSessions.length} session(s)`);
+    } catch (error) {
+      console.error("Failed to load sessions:", error);
+      toast.error("Failed to load sessions");
+    }
+  };
+  
+  const loadFeedbackStats = async (tutorIdParam: string) => {
+    try {
+      const stats = await feedbackService.getTutorFeedbackStats(tutorIdParam);
+      setFeedbackStats(stats);
+    } catch (error) {
+      console.error("Failed to load feedback stats:", error);
+    }
+  };
 
   // Meeting notes and materials state
   const [showNotesDialog, setShowNotesDialog] = useState(false);
@@ -131,7 +198,7 @@ export function TutorSessions() {
   const cancelledSessions = sessions.filter(s => s.status === "cancelled");
 
   const session = sessions.find(s => s.id === selectedSession);
-  const studentFeedback = session ? mockStudentFeedback[session.id] : null;
+  const studentFeedback: {rating: number; comment: string; recommended: boolean; timestamp: string} | null = null; // TODO: Load from API
 
   // Calculate session statistics
   const getSessionStats = (session: TutoringSession) => {
@@ -149,7 +216,8 @@ export function TutorSessions() {
 
   // Get subject details
   const getSubjectDetails = (subjectId: string) => {
-    return mockSubjects.find(s => s.id === subjectId);
+    // TODO: Load from API when subject API is available
+    return { id: subjectId, code: subjectId.toUpperCase(), name: subjectId };
   };
 
   const handleSaveProgress = () => {
@@ -348,24 +416,21 @@ export function TutorSessions() {
     toast.info("Schedule form cleared");
   };
 
-  // Calculate aggregate feedback statistics
-  const getFeedbackStats = () => {
-    const feedbacks = Object.values(mockStudentFeedback);
-    if (feedbacks.length === 0) return null;
+  // Use feedback stats from API
+  const recommendRate = (feedbackStats?.totalFeedback || 0) > 0 ? 100 : 0; // Mock 100% for now
 
-    const avgRating =
-      feedbacks.reduce((acc, f) => acc + f.rating, 0) / feedbacks.length;
-    const recommendCount = feedbacks.filter(f => f.recommended).length;
-    const recommendRate = (recommendCount / feedbacks.length) * 100;
-
-    return {
-      totalFeedbacks: feedbacks.length,
-      avgRating,
-      recommendRate,
-    };
-  };
-
-  const feedbackStats = getFeedbackStats();
+  if (isLoading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading sessions...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -388,14 +453,14 @@ export function TutorSessions() {
                   <Star className="w-5 h-5 text-yellow-600" />
                   <div>
                     <p className="text-2xl font-bold text-yellow-900">
-                      {feedbackStats.avgRating.toFixed(1)}
+                      {feedbackStats.averageRating.toFixed(1)}
                     </p>
                     <p className="text-xs text-yellow-700">Avg Rating</p>
                   </div>
                 </div>
                 <div className="border-l border-yellow-300 pl-4">
                   <p className="text-2xl font-bold text-orange-900">
-                    {feedbackStats.recommendRate.toFixed(0)}%
+                    {recommendRate.toFixed(0)}%
                   </p>
                   <p className="text-xs text-orange-700">Recommended</p>
                 </div>
@@ -545,7 +610,7 @@ export function TutorSessions() {
             {completedSessions.map(session => {
               const stats = getSessionStats(session);
               const subject = getSubjectDetails(session.subjectId);
-              const feedback = mockStudentFeedback[session.id];
+              const feedback: { rating: number; comment: string; recommended: boolean } | null = null; // TODO: Load individual session feedback from API
 
               return (
                 <Card
@@ -1269,7 +1334,8 @@ export function TutorSessions() {
 
             {/* Student Feedback Tab */}
             <TabsContent value="feedback" className="space-y-4">
-              {studentFeedback ? (
+              {/* TODO: Load student feedback from API */}
+              {false ? (
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1420,19 +1486,19 @@ export function TutorSessions() {
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <Star className="w-6 h-6 fill-yellow-400 text-yellow-400" />
                           <p className="text-3xl font-bold text-blue-900">
-                            {feedbackStats.avgRating.toFixed(1)}
+                            {feedbackStats.averageRating.toFixed(1)}
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">Average Rating</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          From {feedbackStats.totalFeedbacks} students
+                          From {feedbackStats.totalFeedback} students
                         </p>
                       </div>
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <ThumbsUp className="w-6 h-6 text-green-600" />
                           <p className="text-3xl font-bold text-green-900">
-                            {feedbackStats.recommendRate.toFixed(0)}%
+                            {recommendRate.toFixed(0)}%
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">
@@ -1446,7 +1512,7 @@ export function TutorSessions() {
                         <div className="flex items-center justify-center gap-2 mb-2">
                           <TrendingUp className="w-6 h-6 text-purple-600" />
                           <p className="text-3xl font-bold text-purple-900">
-                            {feedbackStats.totalFeedbacks}
+                            {feedbackStats.totalFeedback}
                           </p>
                         </div>
                         <p className="text-sm text-gray-600">Total Feedback</p>

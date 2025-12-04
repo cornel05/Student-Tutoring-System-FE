@@ -33,30 +33,55 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
-  const handleLogin = (role: "student" | "tutor" | "ads" | "oaa" | "osa") => {
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setCurrentUser(user);
+      
+      // Check consent for students
+      if (user.role === "student") {
+        const hasLoggedInBefore = localStorage.getItem(`user_${user.id}_consent`);
+        if (hasLoggedInBefore) {
+          setHasConsent(hasLoggedInBefore === "true");
+        }
+      }
+    }
+  }, []);
+
+  const handleLogin = (role: "student" | "tutor" | "ads" | "oaa" | "osa", userData?: User) => {
+    // Use userData from API if provided, otherwise fall back to mock data
     let user: User;
 
-    switch (role) {
-      case "student":
-        user = mockStudentUser;
-        break;
-      case "tutor":
-        user = mockTutorUser;
-        break;
-      case "ads":
-        user = mockADSUser;
-        break;
-      case "oaa":
-        user = mockOAAUser;
-        break;
-      case "osa":
-        user = mockOSAUser;
-        break;
-      default:
-        user = mockStudentUser;
+    if (userData) {
+      user = userData;
+    } else {
+      // Fallback to mock data if no userData provided
+      switch (role) {
+        case "student":
+          user = mockStudentUser;
+          break;
+        case "tutor":
+          user = mockTutorUser;
+          break;
+        case "ads":
+          user = mockADSUser;
+          break;
+        case "oaa":
+          user = mockOAAUser;
+          break;
+        case "osa":
+          user = mockOSAUser;
+          break;
+        default:
+          user = mockStudentUser;
+      }
     }
 
     setCurrentUser(user);
+    // Store in localStorage for persistence
+    localStorage.setItem('currentUser', JSON.stringify(user));
 
     // Check if first login for students
     if (role === "student") {
@@ -94,6 +119,8 @@ export default function App() {
     setHasConsent(false);
     setCurrentPage("dashboard");
     setIsFirstLogin(false);
+    // Clear localStorage on logout
+    localStorage.removeItem('currentUser');
   };
 
   const handleNavigate = (page: string) => {

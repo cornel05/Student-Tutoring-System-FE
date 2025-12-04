@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -14,6 +14,7 @@ import {
   Send,
   AlertCircle,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import {
   Dialog,
@@ -33,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { availabilityService, profileService, Availability } from "../../services/api";
 
 const DAYS = [
   "Monday",
@@ -61,47 +63,79 @@ const TIME_SLOTS = [
 ];
 
 export function TutorSchedule() {
-  const [availability, setAvailability] = useState<TimeSlot[]>([
-    {
-      id: "a1",
-      day: "Monday",
-      startTime: "14:00",
-      endTime: "16:00",
-      mode: "both",
-      location: "Room A5-101",
-      zoomLink: "https://zoom.us/j/123456789",
-      capacity: 5,
-      isPublished: true,
-      requiresApproval: false,
-    },
-    {
-      id: "a2",
-      day: "Wednesday",
-      startTime: "14:00",
-      endTime: "16:00",
-      mode: "online",
-      zoomLink: "https://zoom.us/j/987654321",
-      capacity: 8,
-      isPublished: true,
-      requiresApproval: true,
-    },
-    {
-      id: "a3",
-      day: "Friday",
-      startTime: "10:00",
-      endTime: "12:00",
-      mode: "offline",
-      location: "Room A5-102",
-      capacity: 4,
-      isPublished: false,
-      requiresApproval: false,
-    },
-  ]);
+  const [availability, setAvailability] = useState<TimeSlot[]>([]);
+  const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [tutorId, setTutorId] = useState<string>("");
 
-  const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([
-    { id: "b1", date: "2025-12-25", reason: "Christmas Holiday" },
-    { id: "b2", date: "2025-12-31", reason: "New Year Preparation" },
-  ]);
+  // Get current user from localStorage
+  const getCurrentUser = () => {
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return null;
+  };
+
+  const currentUser = getCurrentUser();
+  const userId = currentUser?.id || "";
+
+  useEffect(() => {
+    loadTutorData();
+  }, []);
+
+  const loadTutorData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch tutor profile to get tutorId
+      const profile: any = await profileService.getUserProfile(userId);
+      console.log("Tutor profile:", profile);
+      
+      if (profile.tutorId) {
+        setTutorId(profile.tutorId);
+        await loadAvailabilities(profile.tutorId);
+      } else {
+        toast.error("Tutor ID not found");
+      }
+    } catch (error) {
+      console.error("Failed to load tutor data:", error);
+      toast.error("Failed to load schedule");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadAvailabilities = async (tutorIdParam: string) => {
+    try {
+      const availabilities = await availabilityService.getTutorAvailabilities(tutorIdParam);
+      console.log("Availabilities:", availabilities);
+      
+      // Convert API format to UI format
+      const converted: TimeSlot[] = availabilities.map((a: any) => ({
+        id: a.availabilityId, // Use availabilityId as ID
+        uuid: a.uuid, // Preserve UUID for publish/delete operations
+        day: capitalizeDay(a.dayOfWeek),
+        startTime: a.startTime.length > 5 ? a.startTime.substring(0, 5) : a.startTime, // Handle both "HH:MM:SS" and "HH:MM"
+        endTime: a.endTime.length > 5 ? a.endTime.substring(0, 5) : a.endTime,
+        mode: a.mode === 'HYBRID' ? 'both' : a.mode.toLowerCase() as "online" | "offline" | "both",
+        location: a.mode === 'OFFLINE' || a.mode === 'HYBRID' ? a.locationOrLink : undefined,
+        zoomLink: a.mode === 'ONLINE' || a.mode === 'HYBRID' ? a.locationOrLink : undefined,
+        capacity: a.capacity,
+        isPublished: a.published,
+        requiresApproval: false, // Default value, can be added to backend later
+      }));
+      
+      setAvailability(converted);
+      toast.success(`Loaded ${converted.length} availability slot(s)`);
+    } catch (error) {
+      console.error("Failed to load availabilities:", error);
+      toast.error("Failed to load availabilities");
+    }
+  };
+
+  const capitalizeDay = (day: string): string => {
+    return day.charAt(0) + day.substring(1).toLowerCase();
+  };
 
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBlackoutDialog, setShowBlackoutDialog] = useState(false);
@@ -122,7 +156,7 @@ export function TutorSchedule() {
     reason: "",
   });
 
-  const handleAddSlot = () => {
+  const handleAddSlot = async () => {
     if (
       !newSlot.startTime ||
       !newSlot.endTime ||
@@ -145,40 +179,61 @@ export function TutorSchedule() {
       return;
     }
 
-    const slot: TimeSlot = {
-      id: `a${availability.length + 1}`,
-      day: newSlot.day || "Monday",
-      startTime: newSlot.startTime,
-      endTime: newSlot.endTime,
-      mode: newSlot.mode,
-      location: newSlot.location,
-      zoomLink: newSlot.zoomLink,
-      capacity: newSlot.capacity || 5,
-      isPublished: false,
-      requiresApproval: newSlot.requiresApproval || false,
-    };
+    try {
+      const locationOrLink = newSlot.mode === "offline" 
+        ? newSlot.location 
+        : newSlot.mode === "online"
+        ? newSlot.zoomLink
+        : `${newSlot.location} & ${newSlot.zoomLink}`;
 
-    setAvailability([...availability, slot]);
-    toast.success("Time slot added successfully", {
-      description: "Remember to publish your availability when ready",
-    });
-    setShowAddDialog(false);
-    setNewSlot({
-      day: "Monday",
-      startTime: "14:00",
-      endTime: "16:00",
-      mode: "both",
-      location: "",
-      zoomLink: "",
-      capacity: 5,
-      isPublished: false,
-      requiresApproval: false,
-    });
+      const createData = {
+        tutorId: tutorId,
+        dayOfWeek: (newSlot.day || "Monday").toUpperCase(),
+        startTime: `${newSlot.startTime}:00`,
+        endTime: `${newSlot.endTime}:00`,
+        mode: newSlot.mode?.toUpperCase() === "BOTH" ? "HYBRID" : newSlot.mode?.toUpperCase() || "HYBRID",
+        locationOrLink: locationOrLink,
+        capacity: newSlot.capacity || 5,
+        published: false,
+      };
+
+      console.log("Creating availability:", createData);
+      await availabilityService.createAvailability(createData);
+      
+      toast.success("Time slot added successfully", {
+        description: "Remember to publish your availability when ready",
+      });
+      
+      setShowAddDialog(false);
+      setNewSlot({
+        day: "Monday",
+        startTime: "14:00",
+        endTime: "16:00",
+        mode: "both",
+        location: "",
+        zoomLink: "",
+        capacity: 5,
+        isPublished: false,
+        requiresApproval: false,
+      });
+      
+      // Reload availabilities
+      await loadAvailabilities(tutorId);
+    } catch (error) {
+      console.error("Failed to add time slot:", error);
+      toast.error("Failed to add time slot");
+    }
   };
 
-  const handleRemoveSlot = (id: string) => {
-    setAvailability(availability.filter(slot => slot.id !== id));
-    toast.success("Time slot removed");
+  const handleRemoveSlot = async (uuid: string) => {
+    try {
+      await availabilityService.deleteAvailability(uuid);
+      toast.success("Time slot removed");
+      await loadAvailabilities(tutorId);
+    } catch (error) {
+      console.error("Failed to remove time slot:", error);
+      toast.error("Failed to remove time slot");
+    }
   };
 
   const handleAddBlackout = () => {
@@ -203,7 +258,7 @@ export function TutorSchedule() {
     toast.success("Blackout date removed");
   };
 
-  const handlePublishAvailability = () => {
+  const handlePublishAvailability = async () => {
     const unpublished = availability.filter(slot => !slot.isPublished);
 
     if (unpublished.length === 0) {
@@ -211,10 +266,22 @@ export function TutorSchedule() {
       return;
     }
 
-    setAvailability(availability.map(slot => ({ ...slot, isPublished: true })));
-    toast.success("Availability published!", {
-      description: `${unpublished.length} slot(s) are now visible to students`,
-    });
+    try {
+      // Publish all unpublished slots using uuid
+      await Promise.all(
+        unpublished.map(slot => availabilityService.publishAvailability(slot.uuid!))
+      );
+      
+      toast.success("Availability published!", {
+        description: `${unpublished.length} slot(s) are now visible to students`,
+      });
+      
+      // Reload availabilities
+      await loadAvailabilities(tutorId);
+    } catch (error) {
+      console.error("Failed to publish availability:", error);
+      toast.error("Failed to publish some slots");
+    }
   };
 
   // Group by day
@@ -222,6 +289,19 @@ export function TutorSchedule() {
     day,
     slots: availability.filter(slot => slot.day === day),
   }));
+
+  if (isLoading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Loader2 className="w-16 h-16 text-blue-600 mx-auto mb-4 animate-spin" />
+            <p className="text-gray-600">Loading schedule...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -378,7 +458,7 @@ export function TutorSchedule() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleRemoveSlot(slot.id)}
+                            onClick={() => handleRemoveSlot(slot.uuid!)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 ml-2"
                           >
                             <Trash2 className="w-4 h-4" />

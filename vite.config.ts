@@ -58,5 +58,11 @@ export default defineConfig({
     open: true,
     host: true,
     allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app", "localhost"],
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
   },
 });

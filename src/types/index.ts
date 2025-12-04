@@ -37,6 +37,7 @@ export interface Tutor {
 
 export interface TimeSlot {
   id: string;
+  uuid?: string; // UUID from backend for publish/delete operations
   day: string;
   startTime: string;
   endTime: string;
