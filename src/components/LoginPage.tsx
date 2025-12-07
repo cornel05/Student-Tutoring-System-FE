@@ -15,7 +15,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Real API login function
   const handleSSOLogin = async () => {
     setError("");
 
@@ -27,7 +26,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
 
     try {
-      // Fetch users from API
       const usersPage = await userService.listUsers(0, 100);
       const user = usersPage.content.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
 
@@ -39,7 +37,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
       // Map user role to app role
       let role: "student" | "tutor" | "ads" | "oaa" | "osa" = "student";
-      
+
       switch (user.role) {
         case "STUDENT":
           role = "student";
@@ -53,24 +51,26 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         case "ADMIN":
           role = "oaa";
           break;
+        case "OSA":
+          role = "osa";
+          break;
         default:
           role = "student";
       }
 
-      // Convert API user to UI user format
       const uiUser = {
         id: user.id,
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
         role: role as "student" | "tutor" | "ads" | "oaa" | "osa",
-        studentId: role === "student" ? user.id.substring(0, 8) : undefined,
+        studentId: role === "student" ? "2110001" : undefined,
+        // studentId: role === "student" ? user.id.substring(0, 8) : undefined,
         staffId: (role === "ads" || role === "oaa" || role === "osa" as "student" | "tutor") ? user.id.substring(0, 8) : undefined,
-        avatar: undefined, // Can be added later if needed
+        avatar: undefined,
       };
 
-      // Store user data in localStorage for other components to use
       localStorage.setItem('currentUser', JSON.stringify(uiUser));
-      
+
       onLogin(role, uiUser);
     } catch (err) {
       console.error("Login error:", err);
@@ -94,15 +94,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="absolute top-1/3 -right-32 w-96 h-96 bg-blue-300 rounded-full opacity-20 blur-3xl"></div>
         <div className="absolute -bottom-24 left-1/3 w-96 h-96 bg-blue-400 rounded-full opacity-20 blur-3xl"></div>
       </div>
-
-      {/* Toggle Demo Mode Button - Fixed to top right */}
-      <Button
-        onClick={() => setShowDemoMode(!showDemoMode)}
-        variant="outline"
-        className="fixed top-8 right-8 z-50 border-blue-300 text-blue-700 hover:bg-blue-50 shadow-lg"
-      >
-        {showDemoMode ? "Hide Demo Mode" : "Login with Demo Mode"}
-      </Button>
 
       {/* Geometric Patterns */}
       <div className="absolute inset-0 opacity-5">
@@ -180,7 +171,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               </Button>
             </div>
 
-            {/* Demo Role Selection */}
+            {/* Demo Role Selection
             {showDemoMode && (
               <div className="pt-4 border-t border-blue-100">
                 <p className="text-center text-sm text-gray-500 mb-3">
@@ -228,7 +219,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Footer */}
             <div className="mt-8 text-center text-xs text-gray-500">

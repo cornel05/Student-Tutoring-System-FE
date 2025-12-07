@@ -259,17 +259,6 @@ export function TutorDashboard({ onNavigate }: TutorDashboardProps) {
             </p>
           </CardContent>
         </Card>
-
-        <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => onNavigate("messages")}
-        >
-          <CardContent className="p-6 text-center">
-            <MessageSquare className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="text-gray-900 mb-2">Messages</h3>
-            <p className="text-sm text-gray-600">Chat with your students</p>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

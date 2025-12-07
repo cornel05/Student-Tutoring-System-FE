@@ -39,7 +39,7 @@ export function Navigation({
     { id: "dashboard", label: "Dashboard", icon: Home },
     { id: "tutors", label: "Find Tutors", icon: Users },
     { id: "sessions", label: "My Sessions", icon: Calendar },
-    { id: "messages", label: "Messages", icon: MessageSquare },
+    // { id: "messages", label: "Messages", icon: MessageSquare },
     { id: "profile", label: "Profile", icon: UserCircle },
   ];
 
@@ -48,7 +48,6 @@ export function Navigation({
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "students", label: "My Students", icon: Users },
     { id: "sessions", label: "My Sessions", icon: ClipboardList },
-    { id: "messages", label: "Messages", icon: MessageSquare },
     { id: "profile", label: "Profile", icon: UserCircle },
   ];
 

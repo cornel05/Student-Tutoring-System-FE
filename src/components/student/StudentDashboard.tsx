@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -12,23 +12,77 @@ import {
   Calendar,
   MessageSquare,
 } from "lucide-react";
-import { Subject } from "../../types";
-import { mockSubjects } from "../../data/mockData";
+import { enrollmentService } from "../../services/EnrollmentService";
+
+// Interface mới dựa trên EnrollmentDto
+interface Enrollment {
+  enrollmentId: string;
+  studentId: string;
+  studentName: string;
+  subjectId: string;
+  subjectCode: string;
+  subjectName: string;
+  credits: number;
+  semester: string;
+  grade?: string | null;
+  enrollmentStatus: string;
+}
 
 interface StudentDashboardProps {
   hasConsent: boolean;
   onNavigate: (page: string) => void;
 }
 
-export function StudentDashboard({
-  hasConsent,
-  onNavigate,
-}: StudentDashboardProps) {
-  const subjects = mockSubjects;
-  const needsHelp = subjects.filter(s => s.score && s.score < 7.0);
+export function getStudentIdFromLocalStorage(): string | null {
+  const key = Object.keys(localStorage).find(k => k.includes("_consent"));
+  return key ? key.split("_")[1] : null;
+}
+
+export function StudentDashboard({ hasConsent, onNavigate }: StudentDashboardProps) {
+  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Lọc những môn cần hỗ trợ
+  const needsHelp = enrollments.filter(e => e.grade && parseFloat(e.grade) < 7.0);
+
+  // Tính GPA trung bình và tổng tín chỉ
   const averageScore =
-    subjects.reduce((acc, s) => acc + (s.score || 0), 0) / subjects.length;
-  const totalCredits = subjects.reduce((acc, s) => acc + s.credits, 0);
+    enrollments.reduce((acc, e) => acc + (parseFloat(e.grade || "0")), 0) / (enrollments.length || 1);
+  const totalCredits = enrollments.reduce((acc, e) => acc + e.credits, 0);
+  const getCurrentUser = () => {
+    const stored = localStorage.getItem('currentUser');
+    if (stored) {
+      return JSON.parse(stored);
+    }
+    return null;
+  };
+  
+  const currentUser = getCurrentUser();
+  const userId = currentUser?.id || "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        if (userId) {
+          const data = await enrollmentService.getStudentEnrollments(userId);
+          setEnrollments(data);
+        }
+      } catch (err) {
+        console.error("Failed to load enrollments", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-600">
+        Loading your academic data...
+      </div>
+    );
+  }
 
   if (!hasConsent) {
     return (
@@ -95,7 +149,7 @@ export function StudentDashboard({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-100 text-sm mb-1">Subjects</p>
-                <p className="text-3xl">{subjects.length}</p>
+                <p className="text-3xl">{enrollments.length}</p>
               </div>
               <BookOpen className="w-8 h-8 text-purple-200" />
             </div>
@@ -143,23 +197,22 @@ export function StudentDashboard({
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {subjects.map(subject => {
-              const needsImprovement = subject.score && subject.score < 7.0;
+            {enrollments.map(enrollment => {
+              const needsImprovement = enrollment.grade && parseFloat(enrollment.grade) < 7.0;
               return (
                 <div
-                  key={subject.id}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    needsImprovement
-                      ? "border-orange-300 bg-orange-50"
-                      : "border-gray-200 bg-white"
-                  }`}
+                  key={enrollment.enrollmentId}
+                  className={`p-4 rounded-lg border-2 transition-all ${needsImprovement
+                    ? "border-orange-300 bg-orange-50"
+                    : "border-gray-200 bg-white"
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1">
-                        <h4 className="text-gray-900">{subject.name}</h4>
+                        <h4 className="text-gray-900">{enrollment.subjectName}</h4>
                         <Badge variant="outline" className="text-xs">
-                          {subject.code}
+                          {enrollment.subjectCode}
                         </Badge>
                         {needsImprovement && (
                           <Badge className="bg-orange-500 text-white text-xs">
@@ -169,30 +222,19 @@ export function StudentDashboard({
                         )}
                       </div>
                       <p className="text-sm text-gray-600">
-                        {subject.credits} credits • {subject.semester}{" "}
-                        {subject.year}
+                        {enrollment.credits} credits • Semester {enrollment.semester}
                       </p>
                     </div>
                     <div className="text-right">
-                      <div
-                        className={`text-2xl ${
-                          needsImprovement
-                            ? "text-orange-600"
-                            : "text-green-600"
-                        }`}
-                      >
-                        {subject.score?.toFixed(1)}
+                      <div className={`text-2xl ${needsImprovement ? "text-orange-600" : "text-green-600"}`}>
+                        {enrollment.grade || "-"}
                       </div>
                       <p className="text-xs text-gray-500">/ 10.0</p>
                     </div>
                   </div>
                   <Progress
-                    value={(subject.score || 0) * 10}
-                    className={
-                      needsImprovement
-                        ? "[&>div]:bg-orange-500"
-                        : "[&>div]:bg-green-500"
-                    }
+                    value={(parseFloat(enrollment.grade || "0")) * 10}
+                    className={needsImprovement ? "[&>div]:bg-orange-500" : "[&>div]:bg-green-500"}
                   />
                   {needsImprovement && (
                     <div className="mt-3 flex gap-2">
@@ -201,7 +243,7 @@ export function StudentDashboard({
                         onClick={() => onNavigate("tutors")}
                         className="bg-orange-600 hover:bg-orange-700 text-xs"
                       >
-                        Find Tutor for {subject.code}
+                        Find Tutor for {enrollment.subjectCode}
                       </Button>
                     </div>
                   )}
@@ -237,17 +279,6 @@ export function StudentDashboard({
             <p className="text-sm text-gray-600">
               View and manage your tutoring sessions
             </p>
-          </CardContent>
-        </Card>
-
-        <Card
-          className="hover:shadow-lg transition-shadow cursor-pointer"
-          onClick={() => onNavigate("messages")}
-        >
-          <CardContent className="p-6 text-center">
-            <MessageSquare className="w-12 h-12 text-purple-600 mx-auto mb-3" />
-            <h3 className="text-gray-900 mb-2">Messages</h3>
-            <p className="text-sm text-gray-600">Chat with your tutors</p>
           </CardContent>
         </Card>
       </div>
