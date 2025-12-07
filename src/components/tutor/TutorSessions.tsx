@@ -134,6 +134,7 @@ export function TutorSessions() {
             studentName: studentName,
             studentEmail: studentEmail,
             subjectId: s.subjectId || "unknown",
+            title: s.title,
             subjectCode: "",
             status: s.status.toLowerCase() === "confirmed" || s.status.toLowerCase() === "pending_tutor_approval" ? "active" : s.status.toLowerCase() as "active" | "completed" | "cancelled",
             startDate: s.startTime ? new Date(s.startTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -200,7 +201,7 @@ export function TutorSessions() {
   const [scheduleLocation, setScheduleLocation] = useState("");
   const [scheduleNotes, setScheduleNotes] = useState("");
 
-  const activeSessions = sessions.filter(s => s.status === "active");
+  const activeSessions = sessions.filter(s => s.status === "pending");
   const completedSessions = sessions.filter(s => s.status === "completed");
   const cancelledSessions = sessions.filter(s => s.status === "cancelled");
 
@@ -524,7 +525,7 @@ export function TutorSessions() {
                             {session.subjectName}
                           </p>
                           <Badge variant="outline" className="text-xs">
-                            {subject?.code}
+                            {session.title}
                           </Badge>
                         </div>
                       </div>
@@ -548,14 +549,9 @@ export function TutorSessions() {
                       </div>
                       <div className="p-2 bg-purple-50 rounded-lg">
                         <p className="text-xl font-semibold text-purple-600">
-                          {Math.floor(
-                            (Date.now() -
-                              new Date(session.startDate).getTime()) /
-                              (1000 * 60 * 60 * 24 * 7)
-                          )}
-                          w
+                          {session.startDate}
                         </p>
-                        <p className="text-xs text-gray-600">Duration</p>
+                        <p className="text-xs text-gray-600">Start Date</p>
                       </div>
                     </div>
 
@@ -593,10 +589,6 @@ export function TutorSessions() {
                       >
                         <FileText className="mr-2 h-4 w-4" />
                         View Details
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <MessageSquare className="mr-2 h-4 w-4" />
-                        Message
                       </Button>
                     </div>
                   </CardContent>
@@ -644,7 +636,7 @@ export function TutorSessions() {
                           </p>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="text-xs">
-                              {subject?.code}
+                              {session.title}
                             </Badge>
                           </div>
                         </div>

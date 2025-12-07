@@ -47,7 +47,6 @@ export function TutorProfile() {
   const [bio, setBio] = useState("");
   const [credentials, setCredentials] = useState<TutorCredential[]>([]);
 
-  // Get user from localStorage (set during login)
   const getCurrentUser = () => {
     const stored = localStorage.getItem('currentUser');
     if (stored) {

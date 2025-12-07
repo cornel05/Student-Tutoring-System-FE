@@ -230,10 +230,10 @@ export function TutorStudents() {
                       <div className="p-3 bg-purple-50 rounded-lg">
                         <p className="text-2xl text-purple-600">
                           {session.startDate ? Math.floor(
-                            (Date.now() - new Date(session.startDate).getTime()) /
-                              (1000 * 60 * 60 * 24 * 7)
+                            (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) /
+                              (1000 * 60)
                           ) : 0}
-                          w
+                          m
                         </p>
                         <p className="text-xs text-gray-600 mt-1">Duration</p>
                       </div>

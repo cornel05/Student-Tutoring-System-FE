@@ -27,6 +27,7 @@ export interface Tutor {
   staffId: string;
   email: string;
   subjects: string[];
+  courses: string[];
   availability: TimeSlot[];
   maxStudents: number;
   currentStudents: number;
@@ -42,8 +43,7 @@ export interface TimeSlot {
   startTime: string;
   endTime: string;
   mode?: "online" | "offline" | "both";
-  location?: string;
-  zoomLink?: string;
+  location_or_link?: string;
   capacity?: number;
   isPublished?: boolean;
   requiresApproval?: boolean;
@@ -67,7 +67,8 @@ export interface TutoringSession {
   studentId: string;
   tutorId: string;
   subjectId: string;
-  status: "active" | "cancelled" | "completed";
+  title: string;
+  status: "pending" | "cancelled" | "completed";
   startDate: string;
   meetings: Meeting[];
   studentName?: string;

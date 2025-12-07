@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
@@ -20,7 +20,7 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
-import { mockTutors, mockSubjects } from "../../data/mockData";
+import { mockTutors } from "../../data/mockData";
 import { Tutor, TimeSlot } from "../../types";
 import { toast } from "sonner";
 import {
@@ -31,7 +31,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-
+import SubjectService from "../../services/SubjectService"
+import { Subject } from "../../services/SubjectService";
 interface TutorsListProps {
   onBookSession: (tutorId: string, subjectId: string, slotId: string) => void;
 }
@@ -54,9 +55,51 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   const [useAIRecommendations, setUseAIRecommendations] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  const tutors = mockTutors;
-  const subjects = mockSubjects;
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
 
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const data = await SubjectService.getAllSubjects();
+        setSubjects(data);
+      } catch (error) {
+        console.error("Failed to load subjects", error);
+      }
+    };
+
+    fetchSubjects();
+  }, []);
+  useEffect(() => {
+    fetch("/api/tutors/search")
+      .then((res) => res.json())
+      .then((data) => {
+        const mappedTutors: Tutor[] = data.map((t: any) => ({
+          id: t.tutorId,
+          name: t.tutorName,
+          email: t.email ?? "",
+          subjects: t.courses ?? [],
+
+          availability: (t.availableSlots || []).map((s: any) => ({
+            id: s.availabilityId,
+            day: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+            mode: s.mode.toLowerCase(),
+            location_or_link: s.locationOrLink,
+          })),
+
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${t.tutorName}`,
+          rating: t.rating ?? 0,
+        }));
+
+        setTutors(mappedTutors);
+      })
+      .catch((err) => {
+        console.error("Error fetching tutors:", err);
+        toast.error("Không thể tải danh sách tutor");
+      });
+  }, []);
   // Filter options
   const campusOptions = [
     { value: "cs1", label: "CS1 - Lý Thường Kiệt" },
@@ -87,9 +130,32 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
     { value: "online", label: "Online", icon: Video },
     { value: "offline", label: "Offline", icon: MapPin },
   ];
-
+  const storedUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+  const studentId = storedUser.studentId;
   const ratingOptions = [5, 4, 3, 2, 1];
+  async function bookSession(
+    tutorId: string,
+    availabilityId: string,
+    preferredMode: string | null
+  ) {
+    const res = await fetch("/api/tutors/" + tutorId + "/sessions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        studentId,
+        availabilityId,
+        preferredMode,
+      }),
+    });
 
+    if (!res.ok) {
+      throw new Error("Failed to book session");
+    }
+
+    return await res.json();
+  }
   // Helper function to check if time slot matches filter
   const isTimeInRange = (time: string, range: string) => {
     const [rangeStart, rangeEnd] = range.split("-");
@@ -107,27 +173,11 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
   const filteredTutors = tutors.filter(tutor => {
     // Search filter
     const matchesSearch =
-      tutor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tutor.staffId.toLowerCase().includes(searchTerm.toLowerCase());
+      tutor.name.toLowerCase().includes(searchTerm.toLowerCase())
 
     // Subject filter
     const matchesSubject =
       selectedSubject === "all" || tutor.subjects.includes(selectedSubject);
-
-    // Campus filter (mock - assuming location contains campus info)
-    const matchesCampus =
-      selectedCampuses.length === 0 ||
-      selectedCampuses.some(campus =>
-        tutor.availability.some(
-          slot =>
-            slot.location
-              ?.toLowerCase()
-              .includes(campus === "cs1" ? "h1" : "h2") ||
-            slot.location
-              ?.toLowerCase()
-              .includes(campus === "cs1" ? "ly thuong kiet" : "di an")
-        )
-      );
 
     // Day filter
     const matchesDay =
@@ -167,7 +217,6 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
     return (
       matchesSearch &&
       matchesSubject &&
-      matchesCampus &&
       matchesDay &&
       matchesTimeSlot &&
       matchesMethod &&
@@ -809,7 +858,6 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-gray-900">{tutor.name}</h3>
-                      <p className="text-sm text-gray-600">{tutor.staffId}</p>
                     </div>
                     {tutor.rating && (
                       <div className="flex items-center gap-1 text-yellow-500">
@@ -865,54 +913,30 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 </div>
               </div>
 
-              {/* Capacity */}
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Users className="w-4 h-4" />
-                  <span>
-                    {tutor.currentStudents} / {tutor.maxStudents} students
-                  </span>
-                </div>
-                {tutor.isAcceptingStudents ? (
-                  <Badge className="bg-green-500 text-white">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
-                    Accepting Students
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary">Full</Badge>
-                )}
-              </div>
-
               {/* Book Session Button */}
               <div className="pt-4 border-t">
-                {tutor.isAcceptingStudents ? (
-                  <div className="space-y-2">
-                    <p className="text-sm text-gray-600">
-                      Select subject to book session:
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {tutor.subjects.map(subjectCode => (
-                        <Button
-                          key={subjectCode}
-                          size="sm"
-                          onClick={() => {
-                            setSelectedTutor(tutor);
-                            setSelectedTutorSubject(subjectCode);
-                            setShowSlotsDialog(true);
-                          }}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Book Session for {subjectCode}
-                        </Button>
-                      ))}
-                    </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Select subject to book session:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {tutor.subjects.map(subjectCode => (
+                      <Button
+                        key={subjectCode}
+                        size="sm"
+                        onClick={() => {
+                          setSelectedTutor(tutor);
+                          setSelectedTutorSubject(subjectCode);
+                          setShowSlotsDialog(true);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700"
+                      >
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Book Session for {subjectCode}
+                      </Button>
+                    ))}
                   </div>
-                ) : (
-                  <Button disabled className="w-full" variant="secondary">
-                    Currently Not Available
-                  </Button>
-                )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -956,11 +980,10 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               <div
                 key={slot.id}
                 onClick={() => setSelectedSlot(slot)}
-                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                  selectedSlot?.id === slot.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-blue-300"
-                }`}
+                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedSlot?.id === slot.id
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-gray-200 hover:border-blue-300"
+                  }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 space-y-2">
@@ -972,15 +995,6 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       <Badge variant="outline" className="ml-2">
                         {slot.startTime} - {slot.endTime}
                       </Badge>
-                      {slot.requiresApproval && (
-                        <Badge
-                          variant="outline"
-                          className="bg-yellow-50 text-yellow-700 border-yellow-300"
-                        >
-                          <CheckCircle2 className="w-3 h-3 mr-1" />
-                          Approval Required
-                        </Badge>
-                      )}
                     </div>
 
                     {slot.mode && (
@@ -1000,19 +1014,13 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                       </div>
                     )}
 
-                    {slot.location && (
+                    {slot.location_or_link && (
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <MapPin className="w-4 h-4" />
-                        <span>{slot.location}</span>
+                        <span>{slot.location_or_link}</span>
                       </div>
                     )}
 
-                    {slot.zoomLink && (
-                      <div className="flex items-center gap-2 text-sm text-blue-600">
-                        <Video className="w-4 h-4" />
-                        <span className="truncate">Zoom link available</span>
-                      </div>
-                    )}
 
                     {slot.capacity && (
                       <div className="text-sm text-gray-500">
@@ -1083,9 +1091,6 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 </Avatar>
                 <div>
                   <p className="font-medium">{selectedTutor?.name}</p>
-                  <p className="text-sm text-gray-600">
-                    {selectedTutor?.staffId}
-                  </p>
                 </div>
               </div>
             </div>
@@ -1111,14 +1116,14 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 {selectedSlot?.mode && (
                   <div className="flex items-center gap-2 text-sm">
                     {selectedSlot.mode === "online" ||
-                    selectedSlot.mode === "both" ? (
+                      selectedSlot.mode === "both" ? (
                       <Badge variant="outline" className="bg-white">
                         <Video className="w-3 h-3 mr-1" />
                         Online
                       </Badge>
                     ) : null}
                     {selectedSlot.mode === "offline" ||
-                    selectedSlot.mode === "both" ? (
+                      selectedSlot.mode === "both" ? (
                       <Badge variant="outline" className="bg-white">
                         <MapPin className="w-3 h-3 mr-1" />
                         Offline
@@ -1135,26 +1140,6 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
                 )}
               </div>
             </div>
-
-            {/* Approval Notice */}
-            {selectedSlot?.requiresApproval && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="font-medium text-yellow-900 mb-1">
-                      Approval Required
-                    </h4>
-                    <p className="text-sm text-yellow-800">
-                      This time slot requires tutor approval. Your booking
-                      request will be sent to the tutor for review. You'll
-                      receive a notification once the tutor approves or declines
-                      your request.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           <DialogFooter className="gap-3 mt-6">
@@ -1170,45 +1155,43 @@ export function TutorsList({ onBookSession }: TutorsListProps) {
               Back
             </Button>
             <Button
-              onClick={() => {
-                if (selectedTutor && selectedSlot && selectedTutorSubject) {
-                  // Call the booking handler
-                  onBookSession(
+              onClick={async () => {
+                if (!selectedTutor || !selectedSlot || !selectedTutorSubject) {
+                  toast.error("Missing booking information");
+                  return;
+                }
+                const mode =
+                  selectedSlot.mode === "both"
+                    ? "ONLINE"
+                    : selectedSlot.mode
+                      ? selectedSlot.mode.toUpperCase()
+                      : null;
+                try {
+                  const result = await bookSession(
                     selectedTutor.id,
-                    selectedTutorSubject,
-                    selectedSlot.id
+                    selectedSlot.id,
+                    mode
                   );
 
-                  // Show success notification based on approval requirement
-                  if (selectedSlot.requiresApproval) {
-                    toast.success("Booking Request Sent!", {
-                      description: `Your request has been sent to ${selectedTutor.name}. You'll receive a notification once the tutor reviews your request.`,
-                    });
-                  } else {
-                    toast.success("Session Booked Successfully!", {
-                      description: `Your session with ${selectedTutor.name} has been confirmed. Both you and the tutor will receive confirmation notifications.`,
-                    });
-                  }
+                  toast.success("Booking successful!");
+
+                  console.log("session created", result);
 
                   // Reset state
                   setShowConfirmDialog(false);
                   setSelectedTutor(null);
                   setSelectedTutorSubject("");
                   setSelectedSlot(null);
+
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Booking failed!");
                 }
               }}
-              className={`flex-1 border-2 ${
-                selectedSlot?.requiresApproval
-                  ? "bg-yellow-600 hover:bg-yellow-700 border-yellow-700 text-yellow-50"
-                  : "bg-green-600 hover:bg-green-700 border-green-700 text-green-50"
-              }`}
+              className="flex-1 border-2 bg-green-600 hover:bg-green-700 border-green-700 text-green-50"
             >
               <CheckCircle2 className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>
-                {selectedSlot?.requiresApproval
-                  ? "Send Approval Request"
-                  : "Confirm Booking"}
-              </span>
+              Confirm Booking
             </Button>
           </DialogFooter>
         </DialogContent>
